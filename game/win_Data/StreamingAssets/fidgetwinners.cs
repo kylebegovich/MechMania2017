@@ -20,7 +20,6 @@ public class fidgetwinners : MonoBehaviour
     /// </summary>
     /// 
 
-
     // USEFUL VARIABLES
     private ObjectiveScript middleObjective;
     private ObjectiveScript leftObjective;
@@ -37,11 +36,12 @@ public class fidgetwinners : MonoBehaviour
 	private ObjectiveScript[] targetObjectives;
 	private Quaternion spinQuat; // used to syncronize spinning
 	private List<Vector3> knownEnemyLocs;
+	private Vector3 teamVectorFactor;
 
 	// TODO: figure out what this should be
 	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
-    delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
+    public delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
     CharacterAIMethod[] aiMethods;
 
@@ -58,15 +58,8 @@ public class fidgetwinners : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-
-	//	aiMethods [0] = spawnTrap; //KillSquadAI;
-//		aiMethods [1] = KillSquadAI; //KillSquadAI;
-//		aiMethods [2] = spawnTrap; //KillSquadAI;
-
-		aiMethods [0] = CapAndCamp;
-		aiMethods [1] = CapAndCamp;
-		aiMethods [2] = CapAndCamp;
-
+        InitializeStrategies();
+        SetOverallStrategy(STRAT_SPAWN_KILL_WITH_HUNT);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -75,6 +68,11 @@ public class fidgetwinners : MonoBehaviour
 
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
+		if (ourTeamColor == team.red) {
+			teamVectorFactor = new Vector3 (1, 1, 1);
+		} else {
+			teamVectorFactor = new Vector3 (-1, 1, -1);
+		}
 
         targetPowerups = new GameObject[3];
         for(int i = 0; i < 3; i++)
@@ -93,10 +91,57 @@ public class fidgetwinners : MonoBehaviour
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
     }
 
+    public struct Strategy
+    {
+        public string name;
+        public CharacterAIMethod[] strategyAIMethods;
+
+        public Strategy(string strategyName, CharacterAIMethod[] aiMethods)
+        {
+            name = strategyName;
+            strategyAIMethods = aiMethods;
+        }
+    }
+
+    List<Strategy> allStrategies;
+    Strategy STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
+    Strategy STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
+    Strategy STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
+
+    void InitializeStrategies()
+    {
+        STRAT_PURE_KILL_SQUAD = new Strategy("STRAT_PURE_KILL_SQUAD", new CharacterAIMethod[] {KillSquadAI, KillSquadAI, KillSquadAI});
+        STRAT_SPAWN_KILL_WITH_HUNT = new Strategy("STRAT_SPAWN_KILL", new CharacterAIMethod[] {spawnTrap, KillSquadAI, spawnTrap});
+        STRAT_CAP_AND_CAMP = new Strategy("STRAT_CAP_AND_CAMP", new CharacterAIMethod[] {CapAndCamp, CapAndCamp, CapAndCamp});
+
+        allStrategies = new List<Strategy>();
+        allStrategies.Add(STRAT_PURE_KILL_SQUAD);
+        allStrategies.Add(STRAT_SPAWN_KILL_WITH_HUNT);
+        allStrategies.Add(STRAT_CAP_AND_CAMP);
+    }
+
+    void SetOverallStrategy(Strategy strategyToSet)
+    {
+        for (int i = 0; i < allStrategies.Count; i++)
+        {
+            if (strategyToSet.name == allStrategies[i].name)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    aiMethods[j] = allStrategies[i].strategyAIMethods[j];
+                }
+
+                allStrategies.RemoveAt(i);
+                return;
+            }
+        }
+
+        // Strategy not found
+    }
+
     // Need to pass in the name of the powerup because reasons
     // Valid typeName parameters: "HealthPackItem(Clone)", PROBABLY NEED Item(Clone) too: "Points", "SpeedUp", "Power"
     // Returns null if cannot find an item of that type
-    bool oneWaySegFault = false;
     GameObject findClosestItemOfType(CharacterScript character, string typeName)
     {
         float closestDistance = 9001;
@@ -113,16 +158,8 @@ public class fidgetwinners : MonoBehaviour
                     closestObject = item;
                 }
             }
-
-            //Debug.Log(item.name);
         }
 
-        if (oneWaySegFault)
-        { 
-            GameObject segFault = null;
-            segFault.name = "";
-            oneWaySegFault = false;
-        }
         return closestObject;
     }
 
@@ -146,15 +183,34 @@ public class fidgetwinners : MonoBehaviour
         {
             if (characterIndex == 0)
             { 
-              character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-              SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
+              	SlowLookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
-                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                 SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
+				SlowLookout (character, characterIndex);
             }
         }
+
+    } 
+
+
+    void kiteEnemies(CharacterScript character, int characterIndex)
+    {
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+        {
+            character.setLoadout(loadout.LONG);
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
+        
+        for (int i = 0; i < 3; i ++)
+        {
+            MoveCharAwayEnemy(character, i);
+        }
+        
+        
 
     }
 
@@ -264,16 +320,32 @@ public class fidgetwinners : MonoBehaviour
 		ObjectiveScript currentObjective = targetObjectives [characterIndex];
 
 		if (currentObjective.getControllingTeam () == ourTeamColor) {
-			if (middleObjective.getControllingTeam () != ourTeamColor) {
+			if (character.getHP () < 70) {
+				if (targetPowerups[characterIndex] != null && 
+					Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+				{
+					return;
+				}
+
+				GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+				if (closestHealthPack != null)
+				{
+					//character.MoveChar(leftObjective.transform.position);
+					targetPowerups[characterIndex] = closestHealthPack;
+					character.MoveChar(closestHealthPack.transform.position);
+					character.SetFacing(closestHealthPack.transform.position);
+					return;
+				}
+			} if (middleObjective.getControllingTeam () != ourTeamColor) {
 				// must capture middle objective
 				targetObjectives [characterIndex] = middleObjective;
 
 			} else if (GetLeastNeighborIndex (character, characterIndex) == characterIndex) {
 				// leave least index neighboring ally to guard
 				// -- move to watch location --
-				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
+				character.MoveChar (currentObjective.transform.position + Vector3.Scale(new Vector3 (-5, 0, 5), teamVectorFactor));
 				// -- and watch --
-				SlowLookout(character, characterIndex);
+				Guard(character, characterIndex, currentObjective.transform.position);
 			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
 				targetObjectives [characterIndex] = rightObjective;
 			} else {
@@ -287,6 +359,11 @@ public class fidgetwinners : MonoBehaviour
 
     void Update()
     {
+        if (timer == 60)
+        {
+            SetOverallStrategy(STRAT_PURE_KILL_SQUAD);
+        }
+
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
@@ -312,6 +389,17 @@ public class fidgetwinners : MonoBehaviour
     public void gameTimer()
     {
         timer += 1;
+	}
+
+	void Guard(CharacterScript character, int characterIndex, Vector3 target)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
 	}
 
 	void SlowLookout(CharacterScript character, int characterIndex)
@@ -420,13 +508,14 @@ public class fidgetwinners : MonoBehaviour
 
 
     // moves character to last known position of enemy
-    void MoveCharToEnemy(CharacterScript character, int characterIndex)
+    void MoveCharAwayEnemy(CharacterScript character, int characterIndex)
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) >= 35)  
             {
-                character.MoveChar(knownEnemyLocs[i]);
+                character.SetFacing(knownEnemyLocs[i]);
+                character.MoveChar(-knownEnemyLocs[i]);
             }
         }
     }
