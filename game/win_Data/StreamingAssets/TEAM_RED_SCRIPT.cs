@@ -253,5 +253,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         timer += 1;
     }
 
+	void spin(CharacterScript character, int characterIndex)
+	{
+		character.rotateAngle (315f);
+	}
 }
 
