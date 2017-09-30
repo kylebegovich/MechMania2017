@@ -39,7 +39,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private Vector3 teamVectorFactor;
 
 	// TODO: figure out what this should be
-	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
+	private const float MAX_NEAR_DIST = 30; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
     public delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
@@ -214,6 +214,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (middleObjective.getControllingTeam() == ourTeamColor)
             {
                 Guard(character, characterIndex, middleObjective.transform.position);
+                character.SetFacing(middleObjective.transform.position);
                 character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
             }
             else
@@ -224,6 +225,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if(rightObjective.getControllingTeam() == ourTeamColor)
             {
                 Guard(character, characterIndex, rightObjective.transform.position);
+                character.SetFacing(rightObjective.transform.position);
                 character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
             }
             else
@@ -234,6 +236,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (leftObjective.getControllingTeam() == ourTeamColor)
             {
                 Guard(character, characterIndex, leftObjective.transform.position);
+                character.SetFacing(leftObjective.transform.position);
                 character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
             }
             else
