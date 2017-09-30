@@ -37,6 +37,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private ObjectiveScript[] targetObjectives;
 	private Quaternion spinQuat; // used to syncronize spinning
 	private List<Vector3> knownEnemyLocs;
+	private Vector3 teamVectorFactor;
 
 	// TODO: figure out what this should be
 	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
@@ -75,6 +76,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
+		if (ourTeamColor == team.red) {
+			teamVectorFactor = new Vector3 (1, 1, 1);
+		} else {
+			teamVectorFactor = new Vector3 (-1, 1, -1);
+		}
 
         targetPowerups = new GameObject[3];
         for(int i = 0; i < 3; i++)
@@ -287,9 +293,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			} else if (GetLeastNeighborIndex (character, characterIndex) == characterIndex) {
 				// leave least index neighboring ally to guard
 				// -- move to watch location --
-				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
+				character.MoveChar (currentObjective.transform.position + Vector3.Scale(new Vector3 (-5, 0, 5), teamVectorFactor));
 				// -- and watch --
-				SlowLookout(character, characterIndex);
+				Guard(character, characterIndex, currentObjective.transform.position);
 			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
 				targetObjectives [characterIndex] = rightObjective;
 			} else {
@@ -328,6 +334,17 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     public void gameTimer()
     {
         timer += 1;
+	}
+
+	void Guard(CharacterScript character, int characterIndex, Vector3 target)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
 	}
 
 	void SlowLookout(CharacterScript character, int characterIndex)
