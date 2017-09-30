@@ -39,7 +39,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private Vector3 teamVectorFactor;
 
 	// TODO: figure out what this should be
-	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
+	private const float MAX_NEAR_DIST = 30; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
     public delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
@@ -248,11 +248,44 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
         {
             character.setLoadout(loadout.LONG);
-            character.MoveChar(middleObjective.transform.position);
             character.SetFacing(middleObjective.transform.position);
         }
-        
-        for (int i = 0; i < 3; i ++)
+
+        if (characterIndex == 0)
+        {
+            if (middleObjective.getControllingTeam() == ourTeamColor)
+            {
+                Guard(character, characterIndex, middleObjective.transform.position);
+                character.SetFacing(middleObjective.transform.position);
+                character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
+            }
+            else
+                character.MoveChar(middleObjective.transform.position);
+        }
+        else if (characterIndex == 1)
+        {
+            if(rightObjective.getControllingTeam() == ourTeamColor)
+            {
+                Guard(character, characterIndex, rightObjective.transform.position);
+                character.SetFacing(rightObjective.transform.position);
+                character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
+            }
+            else
+                character.MoveChar(rightObjective.transform.position);
+        }
+        else
+        {
+            if (leftObjective.getControllingTeam() == ourTeamColor)
+            {
+                Guard(character, characterIndex, leftObjective.transform.position);
+                character.SetFacing(leftObjective.transform.position);
+                character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
+            }
+            else
+                character.MoveChar(leftObjective.transform.position);
+        }
+
+        for (int i = 0; i < 3; i++)
         {
             MoveCharAwayEnemy(character, i);
         }
@@ -568,7 +601,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 36)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
 
