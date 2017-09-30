@@ -50,9 +50,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-	aiMethods[0] = character1AI;
-	aiMethods[1] = character2AI;
-	aiMethods[2] = character3AI;
+	aiMethods[0] = KillSquadAI;
+	aiMethods[1] = KillSquadAI;
+	aiMethods[2] = KillSquadAI;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -84,6 +84,10 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         character.SetFacing(rightObjective.transform.position);
     }
 
+<<<<<<< HEAD
+    bool waitingForCap;
+    private ObjectiveScript[] targetObjectives = null;
+=======
     void spawnTrap(CharacterScript character, int characterIndex)
     {
     	// Setup loadout for characters
@@ -106,13 +110,38 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	}
     }
 
+>>>>>>> 5e0bbbe60c3abb988292cb188e55f3b043a80d10
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
+        // Initialize necessary data
+        if (targetObjectives == null)
+        {
+            waitingForCap = false;
+
+            targetObjectives = new ObjectiveScript[3];
+            for (int i = 0; i < 3; i++)
+                targetObjectives[i] = null;
+        }
+
+
+
+        if (waitingForCap && )
+            return;
+
         // Ensure all characters have SHORT layout
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
-        
+        ObjectiveScript currentObjective = targetObjectives[characterIndex];
+        character.MoveChar(currentObjective.transform.position);
+
+        if (currentObjective == leftObjective)
+            targetObjectives[characterIndex] = middleObjective;
+        else
+        if (currentObjective == middleObjective)
+            targetObjectives[characterIndex] = rightObjective;
+        else
+            targetObjectives[characterIndex] = leftObjective;
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
