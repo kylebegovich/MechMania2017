@@ -84,8 +84,33 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         character.SetFacing(rightObjective.transform.position);
     }
 
+<<<<<<< HEAD
     bool waitingForCap;
     private ObjectiveScript[] targetObjectives = null;
+=======
+    void spawnTrap(CharacterScript character, int characterIndex)
+    {
+    	// Setup loadout for characters
+    	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+    		if (characterIndex == 1 || characterIndex == 3)
+    			character.setLoadout(loadout.SHORT);
+    		else
+    			character.setLoadout(loadout.MEDIUM);
+
+    	// Rush to middle point
+    	character.MoveChar(middleObjective.transform.position);
+    	character.SetFacing(middleObjective.transform.position);
+
+    	while (middleObjective.getControllingTeam() == character1.getTeam())
+    	{
+    		if (characterIndex == 1 || characterIndex == 3) 
+    		{
+    			
+    		}
+    	}
+    }
+
+>>>>>>> 5e0bbbe60c3abb988292cb188e55f3b043a80d10
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Initialize necessary data
@@ -119,6 +144,35 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             targetObjectives[characterIndex] = leftObjective;
     }
 
+    void CapAndCamp(CharacterScript character, int characterIndex) {
+        bool hasMiddleObjective = true;
+        bool allThreeAlive = true;
+        bool hasBottomObjective = true;
+
+        if (!hasMiddleObjective) {
+
+            // go get middle objective
+        
+        } else if (allThreeAlive) {
+            if (hasBottomObjective) {
+
+                // go get top objective with low health players
+
+                while (!allThreeAlive) {
+                    // bring all charaters to center
+                }
+            } else {
+				
+                // go get bottom objective with low health players
+				
+                while (!allThreeAlive)
+				{
+					// bring all charaters to center
+				}
+			}
+        }
+    }
+
     void Update()
     {
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
@@ -130,7 +184,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         for (int i = 0; i < 3; i++)
         {
-            aiMethods[i](characters[i], i);
+            aiMethods[i](characters[i]);
         }
 
 
