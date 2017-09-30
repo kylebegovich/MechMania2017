@@ -84,8 +84,9 @@ public class FIDGET_WINNERZ : MonoBehaviour
 
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
-
     }
+
+
 
     void spawnTrap(CharacterScript character, int characterIndex)
     {
