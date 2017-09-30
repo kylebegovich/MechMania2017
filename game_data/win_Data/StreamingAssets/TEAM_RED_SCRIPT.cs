@@ -33,12 +33,26 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         return host.AddComponent<TEAM_RED_SCRIPT>();
     }
 
+    delegate void CharacterAIMethod(CharacterScript character);
+    CharacterScript[] characters;
+    CharacterAIMethod[] aiMethods;
+
     void Start()
     {
         // Set up code. This populates your characters with their controlling scripts
         character1 = transform.Find("Character1").gameObject.GetComponent<CharacterScript>();
         character2 = transform.Find("Character2").gameObject.GetComponent<CharacterScript>();
         character3 = transform.Find("Character3").gameObject.GetComponent<CharacterScript>();
+
+        characters = new CharacterScript[3];
+        characters[0] = character1;
+        characters[1] = character2;
+        characters[2] = character3;
+
+        aiMethods = new CharacterAIMethod[3];
+	aiMethods[0] = character1AI;
+	aiMethods[1] = character2AI;
+	aiMethods[2] = character3AI;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -52,15 +66,46 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     }
 
+    void character1AI(CharacterScript character)
+    {
+        character.MoveChar(leftObjective.transform.position);
+        character.SetFacing(leftObjective.transform.position);
+    }
+
+    void character2AI(CharacterScript character)
+    {
+        character.MoveChar(leftObjective.transform.position);
+        character.SetFacing(leftObjective.transform.position);
+    }
+
+    void character3AI(CharacterScript character)
+    {
+        character.MoveChar(rightObjective.transform.position);
+        character.SetFacing(rightObjective.transform.position);
+    }
+
     void Update()
     {
-        //Set caracter loadouts, can only happen when the characters are at base.
-        if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase) 
+        if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
             character2.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
             character3.setLoadout(loadout.SHORT);
+
+        for (int i = 0; i < 3; i++)
+        {
+            aiMethods[i](characters[i]);
+        }
+
+
+        //Set caracter loadouts, can only happen when the characters are at base.
+        /*if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase) 
+            character1.setLoadout(loadout.SHORT);
+        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
+            character2.setLoadout(loadout.SHORT);
+        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
+            character3.setLoadout(loadout.SHORT);*/
 
         // in the first couple of seconds we just scan around
       //  if (timer < 10)
@@ -82,7 +127,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                  }
                  // send other two to capture
             */
-        if (middleObjective.getControllingTeam() != character1.getTeam())
+        /*if (middleObjective.getControllingTeam() != character1.getTeam())
         {
             character1.MoveChar(middleObjective.transform.position);
             character1.SetFacing(middleObjective.transform.position);
@@ -113,7 +158,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             character2.SetFacing(rightObjective.transform.position);
             character3.MoveChar(rightObjective.transform.position);
             character3.SetFacing(rightObjective.transform.position);
-         }
+         }*/
       
     }
 
