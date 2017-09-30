@@ -68,9 +68,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
-		aiMethods [0] = spawnTrap;
-		aiMethods [1] = spawnTrap;
-		aiMethods [2] = spawnTrap;
+		aiMethods [0] = kiteEnemies;
+		aiMethods [1] = kiteEnemies;
+		aiMethods [2] = kiteEnemies;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
