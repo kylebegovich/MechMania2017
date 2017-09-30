@@ -63,9 +63,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
-		aiMethods [0] = CapAndCamp;
-		aiMethods [1] = CapAndCamp;
-		aiMethods [2] = CapAndCamp;
+		aiMethods [0] = kiteEnemies;
+		aiMethods [1] = kiteEnemies;
+		aiMethods [2] = kiteEnemies;
 
 
         // populate the objectives
@@ -155,6 +155,25 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                  SlowLookout(character, characterIndex);
             }
         }
+
+    } 
+
+
+    void kiteEnemies(CharacterScript character, int characterIndex)
+    {
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+        {
+            character.setLoadout(loadout.LONG);
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
+        
+        for (int i = 0; i < 3; i ++)
+        {
+            MoveCharAwayEnemy(character, i);
+        }
+        
+        
 
     }
 
@@ -436,13 +455,14 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 
     // moves character to last known position of enemy
-    void MoveCharToEnemy(CharacterScript character, int characterIndex)
+    void MoveCharAwayEnemy(CharacterScript character, int characterIndex)
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
             if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
             {
-                character.MoveChar(knownEnemyLocs[i]);
+                character.SetFacing(knownEnemyLocs[i]);
+                character.MoveChar(-knownEnemyLocs[i]);
             }
         }
     }
