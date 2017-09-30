@@ -106,23 +106,33 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	}
     }
 
-    bool waitingForCap;
+    bool[] waitingForCap = null;
     private ObjectiveScript[] targetObjectives = null;
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Initialize necessary data
         if (targetObjectives == null)
         {
-            waitingForCap = false;
-
+            waitingForCap = new bool[3];
             targetObjectives = new ObjectiveScript[3];
+
             for (int i = 0; i < 3; i++)
+            {
+                waitingForCap[i] = false;
                 targetObjectives[i] = null;
+            }
         }
 
+        Debug.Log("TEsting 1");
+
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        if (waitingForCap && !(currentObjective.getControllingTeam() == ourTeamColor))
+        if (currentObjective == null)
+            currentObjective = leftObjective;
+
+        if (waitingForCap[characterIndex] && !(currentObjective.getControllingTeam() == ourTeamColor))
             return;
+
+        Debug.Log("TEsting");
 
         if (currentObjective == leftObjective)
             targetObjectives[characterIndex] = middleObjective;
@@ -137,7 +147,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             character.setLoadout(loadout.SHORT);
 
         character.MoveChar(currentObjective.transform.position);
-        waitingForCap = true;
+        waitingForCap[characterIndex] = true;
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
