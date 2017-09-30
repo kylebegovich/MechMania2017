@@ -35,7 +35,10 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 	private ObjectiveScript[] targetObjectives;
 	private Quaternion spinQuat; // used to syncronize spinning
-	private const float MAX_NEAR_DIST = 10; // maximum distance to be considered 'near' to another player;
+	private List<Vector3> knownEnemyLocs;
+
+	// TODO: figure out what this should be
+	private const float MAX_NEAR_DIST = 20; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
     delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
@@ -70,8 +73,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		for (int i = 0; i < targetObjectives.Length; i++) {
 			targetObjectives [i] = middleObjective;
 		}
-//		spinQuat = new Quaternion(0, 0, 0, 0);
 		spinQuat = Quaternion.identity;
+		knownEnemyLocs = new List<Vector3> ();
 
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
@@ -117,12 +120,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (characterIndex == 0)
             {
                 character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-                Spin(character, characterIndex);
+				Lookout (character, characterIndex);
             }
             else if (characterIndex == 2)
             {
                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                Spin(character, characterIndex);
+				Lookout (character, characterIndex);
             }
             else
             {
@@ -237,7 +240,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			}
 		} else {
 			character.MoveChar (currentObjective.transform.position);
-			Spin (character, characterIndex);
+			Lookout (character, characterIndex);
 		}
     }
 
@@ -249,6 +252,10 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             character2.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
             character3.setLoadout(loadout.SHORT);
+
+		for (int i = 0; i < characters.Length; i++) {
+			knownEnemyLocs.AddRange (characters [i].visibleEnemyLocations); // might be something wrong with visibleEnemyLocations breaking Lookout()
+		}
 
         for (int i = 0; i < 3; i++)
         {
@@ -325,6 +332,20 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         timer += 1;
     }
 
+	void Lookout(CharacterScript character, int characterIndex)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing (knownEnemyLocs [i]);
+				enemyNear = true;
+			}
+		}
+		if (!enemyNear) {
+			Spin (character, characterIndex);
+		}
+	}
+
 	void Spin(CharacterScript character, int characterIndex)
 	{
 		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
@@ -341,11 +362,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			}
 		}
 
-		/*spinQuat = */Quaternion temp = spinQuat * Quaternion.Euler (0, 40, 0); // change 30 to 1 if you want to see that they are facing the right way relative to one another.
+		spinQuat = spinQuat * Quaternion.Euler (0, 40, 0); // change 30 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 	
 	
-	// returns: bool[] where *true* denotes index of an ally within 35m of character (excluding self)
+	// returns: bool[] where *true* denotes index of an ally within MAX_NEAR_DIST of character (excluding self)
 	bool[] GetNearAllies(CharacterScript character, int characterIndex)
 	{
 		bool[] isNearArr = new bool[3];
