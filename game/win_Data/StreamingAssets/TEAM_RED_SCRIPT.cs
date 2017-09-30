@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 public class TEAM_RED_SCRIPT : MonoBehaviour
@@ -184,12 +184,13 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (characterIndex == 0)
             { 
 				character.MoveChar(Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
-              	SlowLookout(character, characterIndex);
+                Guard(character, characterIndex, currentObjective.transform.position);
             }
             else if (characterIndex == 2)
             {
 				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
-				SlowLookout (character, characterIndex);
+                Guard(character, characterIndex, currentObjective.transform.position);
+
             }
         }
 
@@ -234,7 +235,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 		// Enable FIDGET (SLOW) SPINNING
 		//         ^--- :(
-        SlowLookout(character, characterIndex);
+        Guard(character, characterIndex, currentObjective.transform.position);
+
 
 		//TODO: should only be able to seek health after target point is capped.
         if (character.getHP() < 99)
@@ -352,8 +354,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 				targetObjectives [characterIndex] = leftObjective;
 			}
 		} else {
-			character.MoveChar (currentObjective.transform.position);
-			SlowLookout (character, characterIndex);
+			character.MoveChar(currentObjective.transform.position);
+            Guard(character, characterIndex, currentObjective.transform.position);
 		}
     }
 
