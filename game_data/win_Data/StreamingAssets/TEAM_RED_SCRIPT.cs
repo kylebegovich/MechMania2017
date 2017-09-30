@@ -96,23 +96,23 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 // Then left
                 //   if (leftObjective.getControllingTeam() != character1.getTeam())
                 //   {
-            character1.MoveChar(middleObjective.transform.position);
-            character1.SetFacing(middleObjective.transform.position);
-            character2.MoveChar(middleObjective.transform.position);
-            character2.SetFacing(middleObjective.transform.position);
-            character3.MoveChar(middleObjective.transform.position);
-            character3.SetFacing(middleObjective.transform.position);
+            character1.MoveChar(leftObjective.transform.position);
+            character1.SetFacing(leftObjective.transform.position);
+            character2.MoveChar(leftObjective.transform.position);
+            character2.SetFacing(leftObjective.transform.position);
+            character3.MoveChar(leftObjective.transform.position);
+            character3.SetFacing(leftObjective.transform.position);
                 //  }
          }
             // Then RIght
          else
          {
-            character1.MoveChar(middleObjective.transform.position);
-            character1.SetFacing(middleObjective.transform.position);
-            character2.MoveChar(middleObjective.transform.position);
-            character2.SetFacing(middleObjective.transform.position);
-            character3.MoveChar(middleObjective.transform.position);
-            character3.SetFacing(middleObjective.transform.position);
+            character1.MoveChar(rightObjective.transform.position);
+            character1.SetFacing(rightObjective.transform.position);
+            character2.MoveChar(rightObjective.transform.position);
+            character2.SetFacing(rightObjective.transform.position);
+            character3.MoveChar(rightObjective.transform.position);
+            character3.SetFacing(rightObjective.transform.position);
          }
       
     }
