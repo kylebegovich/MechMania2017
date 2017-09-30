@@ -211,15 +211,33 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         if (characterIndex == 0)
         {
-            character.MoveChar(middleObjective.transform.position);
+            if (middleObjective.getControllingTeam() == ourTeamColor)
+            {
+                Guard(character, characterIndex, middleObjective.transform.position);
+                character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
+            }
+            else
+                character.MoveChar(middleObjective.transform.position);
         }
         else if (characterIndex == 1)
         {
-            character.MoveChar(rightObjective.transform.position);
+            if(rightObjective.getControllingTeam() == ourTeamColor)
+            {
+                Guard(character, characterIndex, rightObjective.transform.position);
+                character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
+            }
+            else
+                character.MoveChar(rightObjective.transform.position);
         }
         else
         {
-            character.MoveChar(leftObjective.transform.position);
+            if (leftObjective.getControllingTeam() == ourTeamColor)
+            {
+                Guard(character, characterIndex, leftObjective.transform.position);
+                character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
+            }
+            else
+                character.MoveChar(leftObjective.transform.position);
         }
 
         for (int i = 0; i < 3; i++)
@@ -543,7 +561,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 37)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 36)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
 
