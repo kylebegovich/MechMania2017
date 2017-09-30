@@ -33,7 +33,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         return host.AddComponent<TEAM_RED_SCRIPT>();
     }
 
-    delegate void CharacterAIMethod(CharacterScript character);
+    delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
     CharacterAIMethod[] aiMethods;
 
@@ -66,22 +66,31 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     }
 
-    void character1AI(CharacterScript character)
+    void character1AI(CharacterScript character, int characterIndex)
     {
         character.MoveChar(leftObjective.transform.position);
         character.SetFacing(leftObjective.transform.position);
     }
 
-    void character2AI(CharacterScript character)
+    void character2AI(CharacterScript character, int characterIndex)
     {
         character.MoveChar(leftObjective.transform.position);
         character.SetFacing(leftObjective.transform.position);
     }
 
-    void character3AI(CharacterScript character)
+    void character3AI(CharacterScript character, int characterIndex)
     {
         character.MoveChar(rightObjective.transform.position);
         character.SetFacing(rightObjective.transform.position);
+    }
+
+    void KillSquadAI(CharacterScript character, int characterIndex)
+    {
+        // Ensure all characters have SHORT layout
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+            character.setLoadout(loadout.SHORT);
+
+        
     }
 
     void Update()
