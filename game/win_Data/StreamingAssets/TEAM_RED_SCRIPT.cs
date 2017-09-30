@@ -38,7 +38,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private List<Vector3> knownEnemyLocs;
 
 	// TODO: figure out what this should be
-	private const float MAX_NEAR_DIST = 20; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
+	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
     delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
@@ -206,7 +206,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 		// Ensure all characters have MEDIUM layout
 		if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-			character.setLoadout(loadout.MEDIUM);
+			character.setLoadout(loadout.SHORT);
 
 		ObjectiveScript currentObjective = targetObjectives [characterIndex];
 
@@ -220,7 +220,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 				// -- move to watch location --
 				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
 				// -- and watch --
-				character.SetFacing (currentObjective.transform.position);
+				Lookout(character, characterIndex);
 			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
 				targetObjectives [characterIndex] = rightObjective;
 			} else {
@@ -266,7 +266,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		bool enemyNear = false;
 		for (int i = 0; i < knownEnemyLocs.Count; i++) {
 			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
-				character.SetFacing (knownEnemyLocs [i]);
+				character.getPrefabObject().transform.rotation = Quaternion.LookRotation((knownEnemyLocs [i] - character.getPrefabObject().transform.position).normalized);
 				enemyNear = true;
 			}
 		}
@@ -291,7 +291,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			}
 		}
 
-		spinQuat = spinQuat * Quaternion.Euler (0, 40, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
+		spinQuat = spinQuat * Quaternion.Euler (0, 30, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 	
 	
