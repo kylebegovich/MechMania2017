@@ -187,13 +187,14 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (characterIndex == 0)
             { 
 				character.MoveChar(Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
-                Guard(character, characterIndex, currentObjective.transform.position);
+                //SlowLookout(character, characterIndex);
+                Guard(character, characterIndex, Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
             }
             else if (characterIndex == 2)
             {
 				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
-                SlowLookout(character, characterIndex);
-
+                //SlowLookout(character, characterIndex);
+                Guard(character, characterIndex, Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
             }
         }
 
