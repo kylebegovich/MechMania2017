@@ -57,9 +57,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
+
 		aiMethods [0] = spawnTrap; //KillSquadAI;
-		aiMethods [1] = spawnTrap; //KillSquadAI;
+		aiMethods [1] = KillSquadAI; //KillSquadAI;
 		aiMethods [2] = spawnTrap; //KillSquadAI;
+
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -81,53 +83,34 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     }
 
-    void character1AI(CharacterScript character, int characterIndex)
-    {
-        character.MoveChar(leftObjective.transform.position);
-        character.SetFacing(leftObjective.transform.position);
-    }
-
-    void character2AI(CharacterScript character, int characterIndex)
-    {
-        character.MoveChar(leftObjective.transform.position);
-        character.SetFacing(leftObjective.transform.position);
-    }
-
-    void character3AI(CharacterScript character, int characterIndex)
-    {
-        character.MoveChar(rightObjective.transform.position);
-        character.SetFacing(rightObjective.transform.position);
-    }
-
     void spawnTrap(CharacterScript character, int characterIndex)
     {
-    	// Setup loadout for characters
-    	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-  			character.setLoadout(loadout.SHORT);
+        // Setup loadout for characters
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+            character.setLoadout(loadout.SHORT);
 
         // Rush to middle point
-        if (timer <=15)
+        if (timer <= 15)
         {
             character.MoveChar(middleObjective.transform.position);
             character.SetFacing(middleObjective.transform.position);
         }
 
-        // Switch the middle character to just run and capture objectives
-        if (characterIndex == 1)
-        {
-            aiMethods[1] == KillSquadAI;
-        }
+
 
         // Have other two characters near enemy spawn and camp
-        else if (characterIndex == 0)
+        if (timer > 15)
         {
-            character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-            Lookout(character, characterIndex);
-        }
-        else
-        {
-            character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-            Lookout(character, characterIndex);
+            if (characterIndex == 0)
+            { 
+              character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
+              Lookout(character, characterIndex);
+            }
+            else if (characterIndex == 2)
+            {
+                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
+                 Lookout(character, characterIndex);
+            }
         }
 
     }
@@ -143,8 +126,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             for (int i = 0; i < 3; i++)
             {
                 lastWentToLeft[i] = true;
-                //characters[i].MoveChar(currentObjective.transform.position);
-                //characters[i].SetFacing(currentObjective.transform.position);
             }
         }
 
@@ -152,15 +133,20 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
+        // Enable FIDGET SPINNING
+        Lookout(character, characterIndex);
+
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
         characters[characterIndex].MoveChar(currentObjective.transform.position);
         characters[characterIndex].SetFacing(currentObjective.transform.position);
 
         if (currentObjective == middleObjective)
         {
+            // Continue moving until we are less than 5 distance away
             if (Vector3.Distance(currentObjective.transform.position, character.getPrefabObject().transform.position) > 5)
                 return;
 
+            // We are less than 5 distance, cap the point if not capped
             if (middleObjective.getControllingTeam() != ourTeamColor)
             {
                 return;
@@ -204,9 +190,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         }
     }
 
-    void CapAndCamp(CharacterScript character, int characterIndex) {
-        bool allThreeAlive = true;
-        bool hasBottomObjective = false;
+	// TODO: Sometimes characters will move towards already guarded Objective right after it is capped when respawning
+	void CapAndCamp(CharacterScript character, int characterIndex) {
+
+		// Ensure all characters have MEDIUM layout
+		if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+			character.setLoadout(loadout.MEDIUM);
 
 		ObjectiveScript currentObjective = targetObjectives [characterIndex];
 
@@ -216,7 +205,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 				targetObjectives [characterIndex] = middleObjective;
 
 			} else if (GetLeastNeighborIndex (character, characterIndex) == characterIndex) {
-				// leave greatest neighbor to guard
+				// leave least index neighboring ally to guard
 				// -- move to watch location --
 				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
 				// -- and watch --
@@ -243,78 +232,16 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 		knownEnemyLocs.Clear ();
 		for (int i = 0; i < characters.Length; i++) {
-			knownEnemyLocs.AddRange (characters [i].visibleEnemyLocations); // might be something wrong with visibleEnemyLocations breaking Lookout()
-			knownEnemyLocs.AddRange (characters [i].attackedFromLocations); //                - -            attackedFromLocations        - -
-			characters [i].attackedFromLocations.Clear ();
+			knownEnemyLocs.AddRange(characters[i].visibleEnemyLocations); // might be something wrong with visibleEnemyLocations breaking Lookout()
+			knownEnemyLocs.AddRange(characters[i].attackedFromLocations); //                - -            attackedFromLocations        - -
+			characters[i].attackedFromLocations.Clear();
 		}
 
+        // Run the individual AI methods for each character as specified by delegation 
         for (int i = 0; i < 3; i++)
         {
             aiMethods[i](characters[i], i);
         }
-
-
-        //Set caracter loadouts, can only happen when the characters are at base.
-        /*if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase) 
-            character1.setLoadout(loadout.SHORT);
-        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
-            character2.setLoadout(loadout.SHORT);
-        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
-            character3.setLoadout(loadout.SHORT);*/
-
-        // in the first couple of seconds we just scan around
-      //  if (timer < 10)
-            /*     {
-                     character1.FaceClosestWaypoint();
-                     character2.FaceClosestWaypoint();
-                     character3.FaceClosestWaypoint();
-                     character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
-                 }
-                 // place sniper in position, run to cover if attacked
-                 if (character1.attackedFromLocations.Capacity == )
-                 {
-                     character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
-                     character1.SetFacing(middleObjective.transform.position);
-                 }
-                 else
-                 {
-                     character1.MoveChar(character1.FindClosestCover(character1.attackedFromLocations[0]));
-                 }
-                 // send other two to capture
-            */
-        /*if (middleObjective.getControllingTeam() != character1.getTeam())
-        {
-            character1.MoveChar(middleObjective.transform.position);
-            character1.SetFacing(middleObjective.transform.position);
-            character2.MoveChar(middleObjective.transform.position);
-            character2.SetFacing(middleObjective.transform.position);
-            character3.MoveChar(middleObjective.transform.position);
-            character3.SetFacing(middleObjective.transform.position);
-        }
-        else if (leftObjective.getControllingTeam() != character1.getTeam())
-        {
-                // Then left
-                //   if (leftObjective.getControllingTeam() != character1.getTeam())
-                //   {
-            character1.MoveChar(leftObjective.transform.position);
-            character1.SetFacing(leftObjective.transform.position);
-            character2.MoveChar(leftObjective.transform.position);
-            character2.SetFacing(leftObjective.transform.position);
-            character3.MoveChar(leftObjective.transform.position);
-            character3.SetFacing(leftObjective.transform.position);
-                //  }
-         }
-            // Then RIght
-         else
-         {
-            character1.MoveChar(rightObjective.transform.position);
-            character1.SetFacing(rightObjective.transform.position);
-            character2.MoveChar(rightObjective.transform.position);
-            character2.SetFacing(rightObjective.transform.position);
-            character3.MoveChar(rightObjective.transform.position);
-            character3.SetFacing(rightObjective.transform.position);
-         }*/
-      
     }
 
     // a simple function to track game time
@@ -353,7 +280,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			}
 		}
 
-		spinQuat = spinQuat * Quaternion.Euler (0, 40, 0); // change 30 to 1 if you want to see that they are facing the right way relative to one another.
+		spinQuat = spinQuat * Quaternion.Euler (0, 40, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 	
 	
