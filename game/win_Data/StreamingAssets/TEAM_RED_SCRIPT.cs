@@ -50,9 +50,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-	aiMethods[0] = KillSquadAI;
-	aiMethods[1] = KillSquadAI;
-	aiMethods[2] = KillSquadAI;
+	aiMethods[0] = spawnTrap;
+	aiMethods[1] = spawnTrap;
+	aiMethods[2] = spawnTrap;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -88,7 +88,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
     	// Setup loadout for characters
     	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-    		if (characterIndex == 1 || characterIndex == 3)
+    		if (characterIndex == 0 || characterIndex == 2)
     			character.setLoadout(loadout.SHORT);
     		else
     			character.setLoadout(loadout.MEDIUM);
@@ -97,15 +97,31 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	character.MoveChar(middleObjective.transform.position);
     	character.SetFacing(middleObjective.transform.position);
 
-    	while (middleObjective.getControllingTeam() == character1.getTeam())
+    	if (middleObjective.getControllingTeam() == character1.getTeam())
     	{
-    		if (characterIndex == 1 || characterIndex == 3) 
-    		{
-    			
-    		}
-            else
+            if (character.getZone() == zone.RedBase)
             {
-                spin(character, characterIndex);
+                if (characterIndex == 0 || characterIndex == 2)
+                {
+                    character.MoveChar(new Vector3(45.0f, 1.5f, -45.0f));
+                //    spin(character, characterIndex);
+                }
+                else
+                {
+                    spin(character, characterIndex);
+                }
+            }
+            if (character.getZone() == zone.BlueBase) 
+            {
+                if (characterIndex == 0 || characterIndex == 2)
+                {
+                    character.MoveChar(new Vector3(-45.0f, 1.5f, 45.0f));
+                 //   spin(character, characterIndex);
+                }
+                else
+                {
+                    spin(character, characterIndex);
+                }
             }
     	}
     }
