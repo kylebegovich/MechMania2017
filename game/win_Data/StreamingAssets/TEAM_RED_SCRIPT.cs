@@ -84,6 +84,28 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         character.SetFacing(rightObjective.transform.position);
     }
 
+    void spawnTrap(CharacterScript character, int characterIndex)
+    {
+    	// Setup loadout for characters
+    	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+    		if (characterIndex == 1 || characterIndex == 3)
+    			character.setLoadout(loadout.SHORT);
+    		else
+    			character.setLoadout(loadout.MEDIUM);
+
+    	// Rush to middle point
+    	character.MoveChar(middleObjective.transform.position);
+    	character.SetFacing(middleObjective.transform.position);
+
+    	while (middleObjective.getControllingTeam() == character1.getTeam())
+    	{
+    		if (characterIndex == 1 || characterIndex == 3) 
+    		{
+    			
+    		}
+    	}
+    }
+
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Ensure all characters have SHORT layout
