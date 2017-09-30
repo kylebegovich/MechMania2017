@@ -59,9 +59,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
 
-		aiMethods [0] = spawnTrap; //KillSquadAI;
-		aiMethods [1] = KillSquadAI; //KillSquadAI;
-		aiMethods [2] = spawnTrap; //KillSquadAI;
+	//	aiMethods [0] = spawnTrap; //KillSquadAI;
+//		aiMethods [1] = KillSquadAI; //KillSquadAI;
+//		aiMethods [2] = spawnTrap; //KillSquadAI;
 
 		aiMethods [0] = KillSquadAI;
 		aiMethods [1] = KillSquadAI;
