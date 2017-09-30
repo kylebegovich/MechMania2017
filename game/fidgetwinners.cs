@@ -1,7 +1,7 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class TEAM_RED_SCRIPT : MonoBehaviour
+public class fidgetswinners : MonoBehaviour
 {
     //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
 
@@ -27,9 +27,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-    public static TEAM_RED_SCRIPT AddYourselfTo(GameObject host)
+    public static fidgetswinners AddYourselfTo(GameObject host)
     {
-        return host.AddComponent<TEAM_RED_SCRIPT>();
+        return host.AddComponent<fidgetswinners>();
     }
 
     private GameObject[] targetPowerups;
