@@ -147,12 +147,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (characterIndex == 0)
             { 
               character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-              Lookout(character, characterIndex);
+              SlowLookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
                  character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                 Lookout(character, characterIndex);
+                 SlowLookout(character, characterIndex);
             }
         }
 
@@ -176,8 +176,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
-        // Enable FIDGET SPINNING
-        Lookout(character, characterIndex);
+		// Enable FIDGET (SLOW) SPINNING
+		//         ^--- :(
+        SlowLookout(character, characterIndex);
 
         if (character.getHP() < 99)
         {
@@ -271,7 +272,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 				// -- move to watch location --
 				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
 				// -- and watch --
-				Lookout(character, characterIndex);
+				SlowLookout(character, characterIndex);
 			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
 				targetObjectives [characterIndex] = rightObjective;
 			} else {
@@ -279,7 +280,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			}
 		} else {
 			character.MoveChar (currentObjective.transform.position);
-			Lookout (character, characterIndex);
+			SlowLookout (character, characterIndex);
 		}
     }
 
@@ -310,7 +311,21 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     public void gameTimer()
     {
         timer += 1;
-    }
+	}
+
+	void SlowLookout(CharacterScript character, int characterIndex)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
+		if (!enemyNear) {
+			SlowSpin (character, characterIndex);
+		}
+	}
 
 	void Lookout(CharacterScript character, int characterIndex)
 	{
@@ -324,6 +339,25 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		if (!enemyNear) {
 			Spin (character, characterIndex);
 		}
+	}
+
+	void SlowSpin(CharacterScript character, int characterIndex)
+	{
+		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
+		if (leastNeighborIndex == characterIndex) {
+			character.SetFacing(spinQuat * Vector3.forward);
+		} else if (GetNeighborCount (character, characterIndex) == 2) {
+			character.SetFacing (spinQuat * Quaternion.Euler (0, 180, 0) * Vector3.forward);
+		} else {
+			// characters should face at thirds...
+			if (characterIndex == 2) {
+				character.SetFacing (spinQuat * Quaternion.Euler (0, 120, 0) * Vector3.forward);
+			} else {
+				character.SetFacing (spinQuat * Quaternion.Euler (0, 240, 0) * Vector3.forward);
+			}
+		}
+
+		spinQuat = spinQuat * Quaternion.Euler (0, 30, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 
 	void Spin(CharacterScript character, int characterIndex)
