@@ -20,11 +20,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     /// </summary>
     /// 
 
-    List<CharacterAIMethod[]> allStrategies;
-    CharacterAIMethod[] STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
-    CharacterAIMethod[] STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
-    CharacterAIMethod[] STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
-
     // USEFUL VARIABLES
     private ObjectiveScript middleObjective;
     private ObjectiveScript leftObjective;
@@ -46,7 +41,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	// TODO: figure out what this should be
 	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
-    delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
+    public delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
     CharacterAIMethod[] aiMethods;
 
@@ -63,14 +58,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-
-	//	aiMethods [0] = spawnTrap; //KillSquadAI;
-//		aiMethods [1] = KillSquadAI; //KillSquadAI;
-//		aiMethods [2] = spawnTrap; //KillSquadAI;
-
 		aiMethods [0] = spawnTrap;
 		aiMethods [1] = KillSquadAI;
 		aiMethods [2] = spawnTrap;
+
+        InitializeStrategies();
+        SetOverallStrategy(STRAT_SPAWN_KILL_WITH_HUNT);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -100,6 +93,54 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
+    }
+
+    public struct Strategy
+    {
+        public string name;
+        public CharacterAIMethod[] strategyAIMethods;
+
+        public Strategy(string strategyName, CharacterAIMethod[] aiMethods)
+        {
+            name = strategyName;
+            strategyAIMethods = aiMethods;
+        }
+    }
+
+    List<Strategy> allStrategies;
+    Strategy STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
+    Strategy STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
+    Strategy STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
+
+    void InitializeStrategies()
+    {
+        STRAT_PURE_KILL_SQUAD = new Strategy("STRAT_PURE_KILL_SQUAD", new CharacterAIMethod[] {KillSquadAI, KillSquadAI, KillSquadAI});
+        STRAT_SPAWN_KILL_WITH_HUNT = new Strategy("STRAT_SPAWN_KILL", new CharacterAIMethod[] {spawnTrap, KillSquadAI, spawnTrap});
+        STRAT_CAP_AND_CAMP = new Strategy("STRAT_CAP_AND_CAMP", new CharacterAIMethod[] {CapAndCamp, CapAndCamp, CapAndCamp});
+
+        allStrategies = new List<Strategy>();
+        allStrategies.Add(STRAT_PURE_KILL_SQUAD);
+        allStrategies.Add(STRAT_SPAWN_KILL_WITH_HUNT);
+        allStrategies.Add(STRAT_CAP_AND_CAMP);
+    }
+
+    void SetOverallStrategy(Strategy strategyToSet)
+    {
+        for (int i = 0; i < allStrategies.Count; i++)
+        {
+            if (strategyToSet.name == allStrategies[i].name)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    aiMethods[j] = allStrategies[i].strategyAIMethods[j];
+                }
+
+                allStrategies.RemoveAt(i);
+                return;
+            }
+        }
+
+        // Strategy not found
     }
 
     // Need to pass in the name of the powerup because reasons
@@ -303,6 +344,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     void Update()
     {
+        if (timer == 60)
+        {
+            SetOverallStrategy(STRAT_PURE_KILL_SQUAD);
+        }
+
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
