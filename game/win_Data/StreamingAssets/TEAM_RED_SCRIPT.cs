@@ -57,9 +57,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-		aiMethods [0] = KillSquadAI;
-		aiMethods [1] = KillSquadAI;
-		aiMethods [2] = KillSquadAI;
+		aiMethods [0] = CapAndCamp;
+		aiMethods [1] = CapAndCamp;
+		aiMethods [2] = CapAndCamp;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
