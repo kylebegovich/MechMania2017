@@ -62,10 +62,6 @@ public class fidgetwinners : MonoBehaviour
 		aiMethods [1] = KillSquadAI; //KillSquadAI;
 		aiMethods [2] = spawnTrap; //KillSquadAI;
 
-		aiMethods [0] = CapAndCamp;
-		aiMethods [1] = CapAndCamp;
-		aiMethods [2] = CapAndCamp;
-
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
