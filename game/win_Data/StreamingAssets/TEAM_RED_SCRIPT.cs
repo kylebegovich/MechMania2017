@@ -68,9 +68,24 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
+<<<<<<< HEAD
 		aiMethods [0] = kiteEnemies;
 		aiMethods [1] = kiteEnemies;
 		aiMethods [2] = kiteEnemies;
+=======
+<<<<<<< HEAD
+
+
+		aiMethods [0] = kiteEnemies;
+		aiMethods [1] = kiteEnemies;
+		aiMethods [2] = kiteEnemies;
+      
+=======
+		aiMethods [0] = spawnTrap;
+		aiMethods [1] = spawnTrap;
+		aiMethods [2] = spawnTrap;
+>>>>>>> 041969d507b17a1eb7126a8954f94248ac7029a5
+>>>>>>> 75a63a2a740156b73f5147289c351c8ba3b815a4
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -155,6 +170,25 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 				SlowLookout (character, characterIndex);
             }
         }
+
+    } 
+
+
+    void kiteEnemies(CharacterScript character, int characterIndex)
+    {
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+        {
+            character.setLoadout(loadout.LONG);
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
+        
+        for (int i = 0; i < 3; i ++)
+        {
+            MoveCharAwayEnemy(character, i);
+        }
+        
+        
 
     }
 
@@ -447,13 +481,14 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 
     // moves character to last known position of enemy
-    void MoveCharToEnemy(CharacterScript character, int characterIndex)
+    void MoveCharAwayEnemy(CharacterScript character, int characterIndex)
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) >= 35)  
             {
-                character.MoveChar(knownEnemyLocs[i]);
+                character.SetFacing(knownEnemyLocs[i]);
+                character.MoveChar(-knownEnemyLocs[i]);
             }
         }
     }
