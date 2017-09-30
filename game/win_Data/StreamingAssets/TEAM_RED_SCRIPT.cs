@@ -237,11 +237,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
-		// Enable FIDGET (SLOW) SPINNING
-		//         ^--- :(
-        Guard(character, characterIndex, currentObjective.transform.position);
-
-
 		//TODO: should only be able to seek health after target point is capped.
         if (character.getHP() < 99)
         {
@@ -257,14 +252,14 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 //character.MoveChar(leftObjective.transform.position);
                 targetPowerups[characterIndex] = closestHealthPack;
                 character.MoveChar(closestHealthPack.transform.position);
-                character.SetFacing(closestHealthPack.transform.position);
+                Guard(character, characterIndex, closestHealthPack.transform.position);
                 return;
             }
         }
 
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        character.MoveChar(currentObjective.transform.position);
-        character.SetFacing(currentObjective.transform.position);
+		character.MoveChar(currentObjective.transform.position);
+		Guard(character, characterIndex, currentObjective.transform.position);
 
         if (currentObjective == middleObjective)
         {
