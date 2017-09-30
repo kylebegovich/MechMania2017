@@ -50,9 +50,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-	    aiMethods[0] = character1AI;
-	    aiMethods[1] = character2AI;
-	    aiMethods[2] = character3AI;
+	aiMethods[0] = character1AI;
+	aiMethods[1] = character2AI;
+	aiMethods[2] = character3AI;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -63,6 +63,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         ourTeamColor = character1.getTeam();
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
+
     }
 
     void character1AI(CharacterScript character)
@@ -96,6 +97,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         {
             aiMethods[i](characters[i]);
         }
+
 
         //Set caracter loadouts, can only happen when the characters are at base.
         /*if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase) 

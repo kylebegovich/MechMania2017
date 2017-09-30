@@ -33,9 +33,13 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 	{
         // Debug.Log(character1.name + " " + character1.);
         //character1.FaceClosestWaypoint();
-        character1.SetFacing(new Vector3(-8f, 0, 8f));
-        character2.FaceClosestWaypoint();
-        character3.FaceClosestWaypoint();
+        //character1.SetFacing(new Vector3(-8f, 0, 8f));
+        //character2.FaceClosestWaypoint();
+        //character3.FaceClosestWaypoint();
+
+        character1.rotateAngle(500);
+        character2.rotateAngle(500);
+        character3.rotateAngle(500);
 
         character1.MoveChar(new Vector3());
         character2.MoveChar(new Vector3(40.0f, 1.5f, 24.0f));
