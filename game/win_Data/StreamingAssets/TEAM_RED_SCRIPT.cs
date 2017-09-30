@@ -59,7 +59,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
-        SetOverallStrategy(STRAT_SPAWN_KILL_WITH_HUNT);
+        SetOverallStrategy(STRAT_FIFTY_KITE);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -107,17 +107,20 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     Strategy STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
     Strategy STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
     Strategy STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
+    Strategy STRAT_FIFTY_KITE;  // Kite for days
 
     void InitializeStrategies()
     {
         STRAT_PURE_KILL_SQUAD = new Strategy("STRAT_PURE_KILL_SQUAD", new CharacterAIMethod[] {KillSquadAI, KillSquadAI, KillSquadAI});
         STRAT_SPAWN_KILL_WITH_HUNT = new Strategy("STRAT_SPAWN_KILL", new CharacterAIMethod[] {spawnTrap, KillSquadAI, spawnTrap});
         STRAT_CAP_AND_CAMP = new Strategy("STRAT_CAP_AND_CAMP", new CharacterAIMethod[] {CapAndCamp, CapAndCamp, CapAndCamp});
+        STRAT_FIFTY_KITE = new Strategy("STRAT_FIFTY_KITE", new CharacterAIMethod[] { kiteEnemies, kiteEnemies, kiteEnemies });
 
         allStrategies = new List<Strategy>();
         allStrategies.Add(STRAT_PURE_KILL_SQUAD);
         allStrategies.Add(STRAT_SPAWN_KILL_WITH_HUNT);
         allStrategies.Add(STRAT_CAP_AND_CAMP);
+        allStrategies.Add(STRAT_FIFTY_KITE);
     }
 
     void SetOverallStrategy(Strategy strategyToSet)
@@ -357,11 +360,19 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		}
     }
 
+
+
+
+
+    // Make sure Update is the final method that is changed to accomadate the strategy that we want. Make sure there are no test cases running inside it.
+
+
+
     void Update()
     {
-        if (timer == 60)
+        if (timer == 1)
         {
-            SetOverallStrategy(STRAT_PURE_KILL_SQUAD);
+            SetOverallStrategy(STRAT_FIFTY_KITE);
         }
 
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
@@ -384,6 +395,16 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             aiMethods[i](characters[i], i);
         }
     }
+
+
+
+
+
+
+
+
+
+
 
     // a simple function to track game time
     public void gameTimer()
@@ -515,7 +536,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) >= 35)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
-                character.MoveChar(-knownEnemyLocs[i]);
+
+                Vector3 value = (character.getPrefabObject().transform.position) - (knownEnemyLocs[i]);
+
+                value = (value.normalized * 35.0f) + knownEnemyLocs[i];
+
+                character.MoveChar(value);
             }
         }
     }
