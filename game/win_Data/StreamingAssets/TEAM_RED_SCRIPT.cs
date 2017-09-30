@@ -20,6 +20,10 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     /// </summary>
     /// 
 
+    List<CharacterAIMethod[]> allStrategies;
+    CharacterAIMethod[] STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
+    CharacterAIMethod[] STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
+    CharacterAIMethod[] STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
 
     // USEFUL VARIABLES
     private ObjectiveScript middleObjective;
@@ -63,10 +67,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
-		aiMethods [0] = CapAndCamp;
-		aiMethods [1] = CapAndCamp;
-		aiMethods [2] = CapAndCamp;
-
+		aiMethods [0] = spawnTrap;
+		aiMethods [1] = KillSquadAI;
+		aiMethods [2] = spawnTrap;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -96,7 +99,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     // Need to pass in the name of the powerup because reasons
     // Valid typeName parameters: "HealthPackItem(Clone)", PROBABLY NEED Item(Clone) too: "Points", "SpeedUp", "Power"
     // Returns null if cannot find an item of that type
-    bool oneWaySegFault = false;
     GameObject findClosestItemOfType(CharacterScript character, string typeName)
     {
         float closestDistance = 9001;
@@ -113,16 +115,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                     closestObject = item;
                 }
             }
-
-            //Debug.Log(item.name);
         }
 
-        if (oneWaySegFault)
-        { 
-            GameObject segFault = null;
-            segFault.name = "";
-            oneWaySegFault = false;
-        }
         return closestObject;
     }
 

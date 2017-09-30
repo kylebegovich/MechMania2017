@@ -1,11 +1,11 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
-//---------- CHANGE THIS NAME HERE -------
 public class TEAM_BLUE_SCRIPT : MonoBehaviour
 {
-	 /// <summary>
+    //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
+
+    /// <summary>
     /// DO NOT MODIFY THIS! 
     /// vvvvvvvvv
     /// </summary>
@@ -20,6 +20,10 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
     /// </summary>
     /// 
 
+    List<CharacterAIMethod[]> allStrategies;
+    CharacterAIMethod[] STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
+    CharacterAIMethod[] STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
+    CharacterAIMethod[] STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
 
     // USEFUL VARIABLES
     private ObjectiveScript middleObjective;
@@ -28,19 +32,18 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-	
-    //---------- CHANGE THIS NAME HERE -------
-    public static TEAM_BLUE_SCRIPT AddYourselfTo(GameObject host) {
-        //---------- CHANGE THIS NAME HERE -------
+    public static TEAM_BLUE_SCRIPT AddYourselfTo(GameObject host)
+    {
         return host.AddComponent<TEAM_BLUE_SCRIPT>();
     }
 
+    private GameObject[] targetPowerups;
 	private ObjectiveScript[] targetObjectives;
 	private Quaternion spinQuat; // used to syncronize spinning
 	private List<Vector3> knownEnemyLocs;
 
 	// TODO: figure out what this should be
-	private const float MAX_NEAR_DIST = 20; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
+	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
     delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
@@ -59,9 +62,14 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-		aiMethods [0] = KillSquadAI;
+
+	//	aiMethods [0] = spawnTrap; //KillSquadAI;
+//		aiMethods [1] = KillSquadAI; //KillSquadAI;
+//		aiMethods [2] = spawnTrap; //KillSquadAI;
+
+		aiMethods [0] = spawnTrap;
 		aiMethods [1] = KillSquadAI;
-		aiMethods [2] = KillSquadAI;
+		aiMethods [2] = spawnTrap;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -70,6 +78,12 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
+
+        targetPowerups = new GameObject[3];
+        for(int i = 0; i < 3; i++)
+        {
+            targetPowerups[i] = null;
+        }
 
 		targetObjectives = new ObjectiveScript[3];
 		for (int i = 0; i < targetObjectives.Length; i++) {
@@ -80,52 +94,62 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
+    }
 
+    // Need to pass in the name of the powerup because reasons
+    // Valid typeName parameters: "HealthPackItem(Clone)", PROBABLY NEED Item(Clone) too: "Points", "SpeedUp", "Power"
+    // Returns null if cannot find an item of that type
+    GameObject findClosestItemOfType(CharacterScript character, string typeName)
+    {
+        float closestDistance = 9001;
+        GameObject closestObject = null;
+
+        foreach (GameObject item in character.getItemList())
+        {
+            if (item.name == typeName)
+            {
+                float distanceToItem = Vector3.Distance(item.transform.position, character.getPrefabObject().transform.position);
+                if (closestDistance > distanceToItem)
+                {
+                    closestDistance = distanceToItem;
+                    closestObject = item;
+                }
+            }
+        }
+
+        return closestObject;
     }
 
     void spawnTrap(CharacterScript character, int characterIndex)
     {
-    	// Setup loadout for characters
-    	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-    		if (characterIndex == 0 || characterIndex == 2)
-    			character.setLoadout(loadout.MEDIUM);
-    		else
-    			character.setLoadout(loadout.SHORT);
+        // Setup loadout for characters
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+            character.setLoadout(loadout.SHORT);
 
         // Rush to middle point
-        if (middleObjective.getControllingTeam() != character1.getTeam() || middleObjective.getControllingTeam() == null)
+        if (timer <= 15)
         {
             character.MoveChar(middleObjective.transform.position);
             character.SetFacing(middleObjective.transform.position);
         }
 
-        if (middleObjective.getControllingTeam() == character1.getTeam())
-    	{
+
+
+        // Have other two characters near enemy spawn and camp
+        if (timer > 15)
+        {
             if (characterIndex == 0)
-            {
-                character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-				Lookout (character, characterIndex);
+            { 
+              character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
+              SlowLookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
-                character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-				Lookout (character, characterIndex);
+                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
+                 SlowLookout(character, characterIndex);
             }
-            else
-            {
-                if (rightObjective.getControllingTeam() != character1.getTeam())
-                {
-                    character.MoveChar(rightObjective.transform.position);
-                    character.SetFacing(rightObjective.transform.position);
-                }
-                else
-                {
-                    character.MoveChar(leftObjective.transform.position);
-                    character.SetFacing(leftObjective.transform.position);
-                }
-                
-            }
-    	}
+        }
+
     }
 
     private bool[] lastWentToLeft = null;
@@ -146,12 +170,33 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
-        // Enable FIDGET SPINNING
-        Lookout(character, characterIndex);
+		// Enable FIDGET (SLOW) SPINNING
+		//         ^--- :(
+        SlowLookout(character, characterIndex);
+
+		//TODO: should only be able to seek health after target point is capped.
+        if (character.getHP() < 99)
+        {
+            if (targetPowerups[characterIndex] != null && 
+                Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+            {
+                return;
+            }
+            
+            GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+            if (closestHealthPack != null)
+            {
+                //character.MoveChar(leftObjective.transform.position);
+                targetPowerups[characterIndex] = closestHealthPack;
+                character.MoveChar(closestHealthPack.transform.position);
+                character.SetFacing(closestHealthPack.transform.position);
+                return;
+            }
+        }
 
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        characters[characterIndex].MoveChar(currentObjective.transform.position);
-        characters[characterIndex].SetFacing(currentObjective.transform.position);
+        character.MoveChar(currentObjective.transform.position);
+        character.SetFacing(currentObjective.transform.position);
 
         if (currentObjective == middleObjective)
         {
@@ -208,12 +253,28 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 
 		// Ensure all characters have MEDIUM layout
 		if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-			character.setLoadout(loadout.MEDIUM);
+			character.setLoadout(loadout.SHORT);
 
 		ObjectiveScript currentObjective = targetObjectives [characterIndex];
 
 		if (currentObjective.getControllingTeam () == ourTeamColor) {
-			if (middleObjective.getControllingTeam () != ourTeamColor) {
+			if (character.getHP () < 70) {
+				if (targetPowerups[characterIndex] != null && 
+					Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+				{
+					return;
+				}
+
+				GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+				if (closestHealthPack != null)
+				{
+					//character.MoveChar(leftObjective.transform.position);
+					targetPowerups[characterIndex] = closestHealthPack;
+					character.MoveChar(closestHealthPack.transform.position);
+					character.SetFacing(closestHealthPack.transform.position);
+					return;
+				}
+			} if (middleObjective.getControllingTeam () != ourTeamColor) {
 				// must capture middle objective
 				targetObjectives [characterIndex] = middleObjective;
 
@@ -222,7 +283,7 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 				// -- move to watch location --
 				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
 				// -- and watch --
-				character.SetFacing (currentObjective.transform.position);
+				SlowLookout(character, characterIndex);
 			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
 				targetObjectives [characterIndex] = rightObjective;
 			} else {
@@ -230,7 +291,7 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 			}
 		} else {
 			character.MoveChar (currentObjective.transform.position);
-			Lookout (character, characterIndex);
+			SlowLookout (character, characterIndex);
 		}
     }
 
@@ -261,19 +322,51 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
     public void gameTimer()
     {
         timer += 1;
-    }
+	}
+
+	void SlowLookout(CharacterScript character, int characterIndex)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
+		if (!enemyNear) {
+			SlowSpin (character, characterIndex);
+		}
+	}
 
 	void Lookout(CharacterScript character, int characterIndex)
 	{
 		bool enemyNear = false;
 		for (int i = 0; i < knownEnemyLocs.Count; i++) {
 			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
-				character.SetFacing (knownEnemyLocs [i]);
+				character.getPrefabObject().transform.rotation = Quaternion.LookRotation((knownEnemyLocs [i] - character.getPrefabObject().transform.position).normalized);
 				enemyNear = true;
 			}
 		}
 		if (!enemyNear) {
 			Spin (character, characterIndex);
+		}
+	}
+
+	void SlowSpin(CharacterScript character, int characterIndex)
+	{
+		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
+		if (leastNeighborIndex == characterIndex) {
+			character.rotateAngle (90);
+			spinQuat = character.getPrefabObject ().transform.rotation;
+		} else if (GetNeighborCount (character, characterIndex) == 2) {
+			character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 180, 0)) * Vector3.forward);
+		} else {
+			// characters should face at thirds...
+			if (characterIndex == 2) {
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 120, 0)) * Vector3.forward);
+			} else {
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 240, 0)) * Vector3.forward);
+			}
 		}
 	}
 
@@ -293,7 +386,7 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 			}
 		}
 
-		spinQuat = spinQuat * Quaternion.Euler (0, 40, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
+		spinQuat = spinQuat * Quaternion.Euler (0, 30, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 	
 	
@@ -333,37 +426,19 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
 		}
 		return characterIndex;
 	}
-	
-    /*vvvv DO NOT MODIFY vvvvv*/
-    /*[SerializeField]
-    public CharacterScript character1;
-    [SerializeField]
-    public CharacterScript character2;
-    [SerializeField]
-    public CharacterScript character3; 
 
-    void Start()
+
+
+    // moves character to last known position of enemy
+    void MoveCharToEnemy(CharacterScript character, int characterIndex)
     {
-        character1 = transform.Find("Character1").gameObject.GetComponent<CharacterScript>();
-        character2 = transform.Find("Character2").gameObject.GetComponent<CharacterScript>();
-        character3 = transform.Find("Character3").gameObject.GetComponent<CharacterScript>();
-    }*/
-    /*^^^^ DO NOT MODIFY ^^^^*/
-
-    /* Your code below this line */
-    // Update() is called every frame
-	// BLUE TEAM INITIAL UPDATE METHOD
-    /*void Update()
-	{
-        // Debug.Log(character1.name + " " + character1.);
-        //character1.FaceClosestWaypoint();
-        character1.SetFacing(new Vector3(-8f, 0, 8f));
-        character2.FaceClosestWaypoint();
-        character3.FaceClosestWaypoint();
-
-        character1.MoveChar(new Vector3());
-        character2.MoveChar(new Vector3(40.0f, 1.5f, 24.0f));
-        character3.MoveChar(new Vector3(-40.0f, 1.5f, -24.0f));
-
-    } */
+        for (int i = 0; i < knownEnemyLocs.Count; i++)
+        {                                                                                                      
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            {
+                character.MoveChar(knownEnemyLocs[i]);
+            }
+        }
+    }
 }
+
