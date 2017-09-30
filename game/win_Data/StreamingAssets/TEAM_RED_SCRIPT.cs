@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class FIDGET_WINNERZ : MonoBehaviour
+public class TEAM_RED_SCRIPT : MonoBehaviour
 {
     //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
 
@@ -28,9 +28,9 @@ public class FIDGET_WINNERZ : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-    public static FIDGET_WINNERZ AddYourselfTo(GameObject host)
+    public static TEAM_RED_SCRIPT AddYourselfTo(GameObject host)
     {
-        return host.AddComponent<FIDGET_WINNERZ>();
+        return host.AddComponent<TEAM_RED_SCRIPT>();
     }
 
 	private ObjectiveScript[] targetObjectives;
@@ -86,7 +86,29 @@ public class FIDGET_WINNERZ : MonoBehaviour
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
     }
 
+    // Need to pass in the name of the powerup because reasons
+    // Valid typeName parameters: "HealthPack", "Points", "SpeedUp", "Power"
+    // Returns null if cannot find an item of that type
+    GameObject findClosestItemOfType(CharacterScript character, string typeName)
+    {
+        float closestDistance = 9001;
+        GameObject closestObject = null;
 
+        foreach(GameObject item in character.getItemList())
+        {
+            if (item.name == typeName)
+            {
+                float distanceToItem = Vector3.Distance(item.transform.position, character.getPrefabObject().transform.position);
+                if (closestDistance > distanceToItem)
+                {
+                    closestDistance = distanceToItem;
+                    closestObject = item;
+                }
+            }
+        }
+
+        return closestObject;
+    }
 
     void spawnTrap(CharacterScript character, int characterIndex)
     {
