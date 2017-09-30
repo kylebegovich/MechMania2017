@@ -33,6 +33,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         return host.AddComponent<TEAM_RED_SCRIPT>();
     }
 
+    private GameObject[] targetPowerups;
 	private ObjectiveScript[] targetObjectives;
 	private Quaternion spinQuat; // used to syncronize spinning
 	private List<Vector3> knownEnemyLocs;
@@ -62,9 +63,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
-		aiMethods [0] = CapAndCamp;
-		aiMethods [1] = CapAndCamp;
-		aiMethods [2] = CapAndCamp;
+		aiMethods [0] = KillSquadAI;
+		aiMethods [1] = KillSquadAI;
+		aiMethods [2] = KillSquadAI;
 
 
         // populate the objectives
@@ -74,6 +75,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
+
+        targetPowerups = new GameObject[3];
+        for(int i = 0; i < 3; i++)
+        {
+            targetPowerups[i] = null;
+        }
 
 		targetObjectives = new ObjectiveScript[3];
 		for (int i = 0; i < targetObjectives.Length; i++) {
@@ -87,14 +94,15 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     }
 
     // Need to pass in the name of the powerup because reasons
-    // Valid typeName parameters: "HealthPack", "Points", "SpeedUp", "Power"
+    // Valid typeName parameters: "HealthPackItem(Clone)", PROBABLY NEED Item(Clone) too: "Points", "SpeedUp", "Power"
     // Returns null if cannot find an item of that type
+    bool oneWaySegFault = false;
     GameObject findClosestItemOfType(CharacterScript character, string typeName)
     {
         float closestDistance = 9001;
         GameObject closestObject = null;
 
-        foreach(GameObject item in character.getItemList())
+        foreach (GameObject item in character.getItemList())
         {
             if (item.name == typeName)
             {
@@ -105,8 +113,16 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                     closestObject = item;
                 }
             }
+
+            //Debug.Log(item.name);
         }
 
+        if (oneWaySegFault)
+        { 
+            GameObject segFault = null;
+            segFault.name = "";
+            oneWaySegFault = false;
+        }
         return closestObject;
     }
 
@@ -163,9 +179,28 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         // Enable FIDGET SPINNING
         Lookout(character, characterIndex);
 
+        if (character.getHP() < 99)
+        {
+            if (targetPowerups[characterIndex] != null && 
+                Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+            {
+                return;
+            }
+            
+            GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+            if (closestHealthPack != null)
+            {
+                //character.MoveChar(leftObjective.transform.position);
+                targetPowerups[characterIndex] = closestHealthPack;
+                character.MoveChar(closestHealthPack.transform.position);
+                character.SetFacing(closestHealthPack.transform.position);
+                return;
+            }
+        }
+
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        characters[characterIndex].MoveChar(currentObjective.transform.position);
-        characters[characterIndex].SetFacing(currentObjective.transform.position);
+        character.MoveChar(currentObjective.transform.position);
+        character.SetFacing(currentObjective.transform.position);
 
         if (currentObjective == middleObjective)
         {
