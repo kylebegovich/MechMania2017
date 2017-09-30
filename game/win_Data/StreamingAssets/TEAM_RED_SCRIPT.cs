@@ -416,5 +416,19 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		}
 		return characterIndex;
 	}
+
+
+
+    // moves character to last known position of enemy
+    void MoveCharToEnemy(CharacterScript character, int characterIndex)
+    {
+        for (int i = 0; i < knownEnemyLocs.Count; i++)
+        {                                                                                                      
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            {
+                character.MoveChar(knownEnemyLocs[i]);
+            }
+        }
+    }
 }
 
