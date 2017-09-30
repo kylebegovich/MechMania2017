@@ -206,11 +206,23 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
         {
             character.setLoadout(loadout.LONG);
-            character.MoveChar(middleObjective.transform.position);
             character.SetFacing(middleObjective.transform.position);
         }
-        
-        for (int i = 0; i < 3; i ++)
+
+        if (characterIndex == 0)
+        {
+            character.MoveChar(middleObjective.transform.position);
+        }
+        else if (characterIndex == 1)
+        {
+            character.MoveChar(rightObjective.transform.position);
+        }
+        else
+        {
+            character.MoveChar(leftObjective.transform.position);
+        }
+
+        for (int i = 0; i < 3; i++)
         {
             MoveCharAwayEnemy(character, i);
         }
@@ -531,7 +543,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 37)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
 
