@@ -192,7 +192,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             else if (characterIndex == 2)
             {
 				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
-                Guard(character, characterIndex, currentObjective.transform.position);
+                SlowLookout(character, characterIndex);
 
             }
         }
