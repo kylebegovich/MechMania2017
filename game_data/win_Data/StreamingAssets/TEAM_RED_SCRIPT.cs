@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class TeamRPGGScript : MonoBehaviour
+public class TEAM_RED_SCRIPT : MonoBehaviour
 {
     //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
 
@@ -28,9 +28,9 @@ public class TeamRPGGScript : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-    public static TeamRPGGScript AddYourselfTo(GameObject host)
+    public static TEAM_RED_SCRIPT AddYourselfTo(GameObject host)
     {
-        return host.AddComponent<TeamRPGGScript>();
+        return host.AddComponent<TEAM_RED_SCRIPT>();
     }
 
     void Start()
