@@ -284,5 +284,19 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	{
 		character.rotateAngle (600f);
 	}
+
+	// returns: bool[] where *true* denotes index of an ally within 35m of character
+	bool[] getNearAllies(CharacterScript character, int characterIndex)
+	{
+		bool[] isNearArr = new bool[3];
+		for (int i = 0; i < characters.Length; i++) {
+			if (i != characterIndex) {
+				isNearArr [i] = Vector3.Distance (character.transform.position, characters [i].transform.position) < 35;
+			} else {
+				isNearArr [i] = false;
+			}
+		}
+		return isNearArr;
+	}
 }
 
