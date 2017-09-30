@@ -122,7 +122,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 else
                 {
                     character.MoveChar(leftObjective.transform.position);
-                    character.SetFacting(leftObjective.transform.position);
+                    character.SetFacing(leftObjective.transform.position);
                 }
                 
             }
