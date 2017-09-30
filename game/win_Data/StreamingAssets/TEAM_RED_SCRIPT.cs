@@ -84,10 +84,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         character.SetFacing(rightObjective.transform.position);
     }
 
-<<<<<<< HEAD
-    bool waitingForCap;
-    private ObjectiveScript[] targetObjectives = null;
-=======
     void spawnTrap(CharacterScript character, int characterIndex)
     {
     	// Setup loadout for characters
@@ -110,7 +106,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	}
     }
 
->>>>>>> 5e0bbbe60c3abb988292cb188e55f3b043a80d10
+    bool waitingForCap;
+    private ObjectiveScript[] targetObjectives = null;
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Initialize necessary data
@@ -123,17 +120,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 targetObjectives[i] = null;
         }
 
-
-
-        if (waitingForCap && )
-            return;
-
-        // Ensure all characters have SHORT layout
-        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-            character.setLoadout(loadout.SHORT);
-
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        character.MoveChar(currentObjective.transform.position);
+        if (waitingForCap && !currentObjective.Captured(ourTeamColor))
+            return;
 
         if (currentObjective == leftObjective)
             targetObjectives[characterIndex] = middleObjective;
@@ -142,6 +131,13 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             targetObjectives[characterIndex] = rightObjective;
         else
             targetObjectives[characterIndex] = leftObjective;
+
+        // Ensure all characters have SHORT layout
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+            character.setLoadout(loadout.SHORT);
+
+        character.MoveChar(currentObjective.transform.position);
+        waitingForCap = true;
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
