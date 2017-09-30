@@ -110,17 +110,22 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	}
     }
 
+    private bool[] lastWentToLeft;
     private ObjectiveScript[] targetObjectives = null;
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Initialize necessary data
         if (targetObjectives == null)
-        { 
+        {
+            lastWentToLeft = new bool[3];
             targetObjectives = new ObjectiveScript[3];
 
             for (int i = 0; i < 3; i++)
             {
-                targetObjectives[i] = leftObjective;
+                lastWentToLeft[i] = true;
+                targetObjectives[i] = middleObjective;
+                //characters[i].MoveChar(currentObjective.transform.position);
+                //characters[i].SetFacing(currentObjective.transform.position);
             }
         }
 
@@ -129,23 +134,64 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             character.setLoadout(loadout.SHORT);
 
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
+        characters[characterIndex].MoveChar(currentObjective.transform.position);
+        characters[characterIndex].SetFacing(currentObjective.transform.position);
 
-        if (currentObjective.getControllingTeam() == ourTeamColor)
+        if (currentObjective == middleObjective)
         {
-            // Current objective, capped, update and try again next frame
-            if (currentObjective == leftObjective)
-                targetObjectives[characterIndex] = middleObjective;
-            else
-            if (currentObjective == middleObjective)
-                targetObjectives[characterIndex] = rightObjective;
-            else
+
+            if (Vector3.Distance(currentObjective.transform.position, character.transform.position) > 500)
+                return;
+
+            if (7 > 2)
+            {
                 targetObjectives[characterIndex] = leftObjective;
+                return;
+            }
+
+            if (middleObjective.getControllingTeam() != ourTeamColor)
+            {
+                return;
+            }
+
+            // We are currently at captured middle position (Home Base) 
+            // Evaluate whether should go to left or right
+            if (leftObjective.getControllingTeam() != ourTeamColor && rightObjective.getControllingTeam() != ourTeamColor)
+            {
+                // Should probably choose at random
+                if (lastWentToLeft[characterIndex])
+                {
+                    targetObjectives[characterIndex] = rightObjective;
+                    lastWentToLeft[characterIndex] = false;
+                }
+                else
+                {
+                    targetObjectives[characterIndex] = leftObjective;
+                    lastWentToLeft[characterIndex] = true;
+                }
+            }
+            else
+            if (leftObjective.getControllingTeam() != ourTeamColor)
+            {
+                targetObjectives[characterIndex] = leftObjective;
+            }
+            else
+            {
+                targetObjectives[characterIndex] = rightObjective;
+            }
 
             return;
         }
 
-        character.MoveChar(currentObjective.transform.position);
-        character.SetFacing(currentObjective.transform.position);
+        // Heading towards either left or right objective
+        if (currentObjective.getControllingTeam() == ourTeamColor)
+        {
+            // Objective captured, head back to home base
+            targetObjectives[characterIndex] = middleObjective;
+            return;
+        }
+
+        // Objective not yet captured, deal with that
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
