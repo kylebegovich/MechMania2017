@@ -115,6 +115,35 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         
     }
 
+    void CapAndCamp(CharacterScript character, int characterIndex) {
+        bool hasMiddleObjective = true;
+        bool allThreeAlive = true;
+        bool hasBottomObjective = true;
+
+        if (!hasMiddleObjective) {
+
+            // go get middle objective
+        
+        } else if (allThreeAlive) {
+            if (hasBottomObjective) {
+
+                // go get top objective with low health players
+
+                while (!allThreeAlive) {
+                    // bring all charaters to center
+                }
+            } else {
+				
+                // go get bottom objective with low health players
+				
+                while (!allThreeAlive)
+				{
+					// bring all charaters to center
+				}
+			}
+        }
+    }
+
     void Update()
     {
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
@@ -126,7 +155,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         for (int i = 0; i < 3; i++)
         {
-            aiMethods[i](characters[i], i);
+            aiMethods[i](characters[i]);
         }
 
 
