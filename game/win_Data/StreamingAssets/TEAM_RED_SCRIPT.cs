@@ -110,48 +110,42 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	}
     }
 
-    bool[] waitingForCap = null;
     private ObjectiveScript[] targetObjectives = null;
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Initialize necessary data
         if (targetObjectives == null)
-        {
-            waitingForCap = new bool[3];
+        { 
             targetObjectives = new ObjectiveScript[3];
 
             for (int i = 0; i < 3; i++)
             {
-                waitingForCap[i] = false;
-                targetObjectives[i] = null;
+                targetObjectives[i] = leftObjective;
             }
         }
-
-        Debug.Log("TEsting 1");
-
-        ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        if (currentObjective == null)
-            currentObjective = leftObjective;
-
-        if (waitingForCap[characterIndex] && !(currentObjective.getControllingTeam() == ourTeamColor))
-            return;
-
-        Debug.Log("TEsting");
-
-        if (currentObjective == leftObjective)
-            targetObjectives[characterIndex] = middleObjective;
-        else
-        if (currentObjective == middleObjective)
-            targetObjectives[characterIndex] = rightObjective;
-        else
-            targetObjectives[characterIndex] = leftObjective;
 
         // Ensure all characters have SHORT layout
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
+        ObjectiveScript currentObjective = targetObjectives[characterIndex];
+
+        if (currentObjective.getControllingTeam() == ourTeamColor)
+        {
+            // Current objective, capped, update and try again next frame
+            if (currentObjective == leftObjective)
+                targetObjectives[characterIndex] = middleObjective;
+            else
+            if (currentObjective == middleObjective)
+                targetObjectives[characterIndex] = rightObjective;
+            else
+                targetObjectives[characterIndex] = leftObjective;
+
+            return;
+        }
+
         character.MoveChar(currentObjective.transform.position);
-        waitingForCap[characterIndex] = true;
+        character.SetFacing(currentObjective.transform.position);
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
