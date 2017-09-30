@@ -50,9 +50,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-	aiMethods[0] = spawnTrap;
-	aiMethods[1] = spawnTrap;
-	aiMethods[2] = spawnTrap;
+	aiMethods[0] = KillSquadAI;
+	aiMethods[1] = KillSquadAI;
+	aiMethods[2] = KillSquadAI;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -158,15 +158,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         if (currentObjective == middleObjective)
         {
-
-            if (Vector3.Distance(currentObjective.transform.position, character.transform.position) > 500)
+            if (Vector3.Distance(currentObjective.transform.position, character.getPrefabObject().transform.position) > 5)
                 return;
-
-            if (7 > 2)
-            {
-                targetObjectives[characterIndex] = leftObjective;
-                return;
-            }
 
             if (middleObjective.getControllingTeam() != ourTeamColor)
             {
@@ -209,8 +202,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             targetObjectives[characterIndex] = middleObjective;
             return;
         }
-
-        // Objective not yet captured, deal with that
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
