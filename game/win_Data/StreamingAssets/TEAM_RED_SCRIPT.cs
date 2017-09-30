@@ -121,7 +121,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         }
 
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        if (waitingForCap && !currentObjective.Captured(ourTeamColor))
+        if (waitingForCap && !(currentObjective.getControllingTeam() == ourTeamColor))
             return;
 
         if (currentObjective == leftObjective)
@@ -180,7 +180,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         for (int i = 0; i < 3; i++)
         {
-            aiMethods[i](characters[i]);
+            aiMethods[i](characters[i], i);
         }
 
 
