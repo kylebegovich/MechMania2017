@@ -55,58 +55,66 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     void Update()
     {
         //Set caracter loadouts, can only happen when the characters are at base.
-        if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
-            character1.setLoadout(loadout.LONG);
+        if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase) 
+            character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
-            character2.setLoadout(loadout.LONG);
+            character2.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
-            character3.setLoadout(loadout.LONG);
+            character3.setLoadout(loadout.SHORT);
 
         // in the first couple of seconds we just scan around
-        if (timer < 10)
-        {
-            character1.FaceClosestWaypoint();
-            character2.FaceClosestWaypoint();
-            character3.FaceClosestWaypoint();
-            character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
-        }
-        // place sniper in position, run to cover if attacked
-        if (character1.attackedFromLocations.Capacity == 0)
-        {
-            character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
-            character1.SetFacing(middleObjective.transform.position);
-        }
-        else
-        {
-            character1.MoveChar(character1.FindClosestCover(character1.attackedFromLocations[0]));
-        }
-        // send other two to capture
+      //  if (timer < 10)
+            /*     {
+                     character1.FaceClosestWaypoint();
+                     character2.FaceClosestWaypoint();
+                     character3.FaceClosestWaypoint();
+                     character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
+                 }
+                 // place sniper in position, run to cover if attacked
+                 if (character1.attackedFromLocations.Capacity == )
+                 {
+                     character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
+                     character1.SetFacing(middleObjective.transform.position);
+                 }
+                 else
+                 {
+                     character1.MoveChar(character1.FindClosestCover(character1.attackedFromLocations[0]));
+                 }
+                 // send other two to capture
+            */
         if (middleObjective.getControllingTeam() != character1.getTeam())
         {
+            character1.MoveChar(middleObjective.transform.position);
+            character1.SetFacing(middleObjective.transform.position);
             character2.MoveChar(middleObjective.transform.position);
             character2.SetFacing(middleObjective.transform.position);
             character3.MoveChar(middleObjective.transform.position);
             character3.SetFacing(middleObjective.transform.position);
         }
-        else
+        else if (leftObjective.getControllingTeam() != character1.getTeam())
         {
-            // Then left
-            if (leftObjective.getControllingTeam() != character1.getTeam())
-            {
-                character2.MoveChar(leftObjective.transform.position);
-                character2.SetFacing(leftObjective.transform.position);
-                character3.MoveChar(leftObjective.transform.position);
-                character3.SetFacing(leftObjective.transform.position);
-            }
+                // Then left
+                //   if (leftObjective.getControllingTeam() != character1.getTeam())
+                //   {
+            character1.MoveChar(middleObjective.transform.position);
+            character1.SetFacing(middleObjective.transform.position);
+            character2.MoveChar(middleObjective.transform.position);
+            character2.SetFacing(middleObjective.transform.position);
+            character3.MoveChar(middleObjective.transform.position);
+            character3.SetFacing(middleObjective.transform.position);
+                //  }
+         }
             // Then RIght
-            if (rightObjective.getControllingTeam() != character1.getTeam())
-            {
-                character2.MoveChar(rightObjective.transform.position);
-                character2.SetFacing(rightObjective.transform.position);
-                character3.MoveChar(rightObjective.transform.position);
-                character3.SetFacing(rightObjective.transform.position);
-            }
-        }
+         else
+         {
+            character1.MoveChar(middleObjective.transform.position);
+            character1.SetFacing(middleObjective.transform.position);
+            character2.MoveChar(middleObjective.transform.position);
+            character2.SetFacing(middleObjective.transform.position);
+            character3.MoveChar(middleObjective.transform.position);
+            character3.SetFacing(middleObjective.transform.position);
+         }
+      
     }
 
     // a simple function to track game time
