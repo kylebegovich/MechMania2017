@@ -253,8 +253,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
             character3.setLoadout(loadout.SHORT);
 
+		knownEnemyLocs.Clear ();
 		for (int i = 0; i < characters.Length; i++) {
 			knownEnemyLocs.AddRange (characters [i].visibleEnemyLocations); // might be something wrong with visibleEnemyLocations breaking Lookout()
+			knownEnemyLocs.AddRange (characters [i].attackedFromLocations); //                - -            attackedFromLocations        - -
+			characters [i].attackedFromLocations.Clear ();
 		}
 
         for (int i = 0; i < 3; i++)
