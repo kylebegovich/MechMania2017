@@ -89,39 +89,42 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	// Setup loadout for characters
     	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
     		if (characterIndex == 0 || characterIndex == 2)
-    			character.setLoadout(loadout.SHORT);
-    		else
     			character.setLoadout(loadout.MEDIUM);
+    		else
+    			character.setLoadout(loadout.SHORT);
 
-    	// Rush to middle point
-    	character.MoveChar(middleObjective.transform.position);
-    	character.SetFacing(middleObjective.transform.position);
+        // Rush to middle point
+        if (middleObjective.getControllingTeam() != character1.getTeam() || middleObjective.getControllingTeam() == null)
+        {
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
 
-    	if (middleObjective.getControllingTeam() == character1.getTeam())
+        if (middleObjective.getControllingTeam() == character1.getTeam())
     	{
-            if (character.getZone() == zone.RedBase)
+            if (characterIndex == 0)
             {
-                if (characterIndex == 0 || characterIndex == 2)
-                {
-                    character.MoveChar(new Vector3(45.0f, 1.5f, -45.0f));
-                //    spin(character, characterIndex);
-                }
-                else
-                {
-                    spin(character, characterIndex);
-                }
+                character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
+                spin(character, characterIndex);
             }
-            if (character.getZone() == zone.BlueBase) 
+            else if (characterIndex == 2)
             {
-                if (characterIndex == 0 || characterIndex == 2)
+                character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
+                spin(character, characterIndex);
+            }
+            else
+            {
+                if (rightObjective.getControllingTeam() != character1.getTeam())
                 {
-                    character.MoveChar(new Vector3(-45.0f, 1.5f, 45.0f));
-                 //   spin(character, characterIndex);
+                    character.MoveChar(rightObjective.transform.position);
+                    character.SetFacing(rightObjective.transform.position);
                 }
                 else
                 {
-                    spin(character, characterIndex);
+                    character.MoveChar(leftObjective.transform.position);
+                    character.SetFacting(leftObjective.transform.position);
                 }
+                
             }
     	}
     }
@@ -279,7 +282,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 	void spin(CharacterScript character, int characterIndex)
 	{
-		character.rotateAngle (315f);
+		character.rotateAngle (600f);
 	}
 }
 
