@@ -103,6 +103,10 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     		{
     			
     		}
+            else
+            {
+                spin(character, characterIndex);
+            }
     	}
     }
 
