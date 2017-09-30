@@ -69,7 +69,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
 		aiMethods [0] = spawnTrap;
-		aiMethods [1] = KillSquadAI;
+		aiMethods [1] = spawnTrap;
 		aiMethods [2] = spawnTrap;
 
         // populate the objectives
@@ -146,13 +146,13 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         {
             if (characterIndex == 0)
             { 
-              character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-              SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
+              	SlowLookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
-                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                 SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
+				SlowLookout (character, characterIndex);
             }
         }
 
