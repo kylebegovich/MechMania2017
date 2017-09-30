@@ -264,7 +264,23 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		ObjectiveScript currentObjective = targetObjectives [characterIndex];
 
 		if (currentObjective.getControllingTeam () == ourTeamColor) {
-			if (middleObjective.getControllingTeam () != ourTeamColor) {
+			if (character.getHP () < 70) {
+				if (targetPowerups[characterIndex] != null && 
+					Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+				{
+					return;
+				}
+
+				GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+				if (closestHealthPack != null)
+				{
+					//character.MoveChar(leftObjective.transform.position);
+					targetPowerups[characterIndex] = closestHealthPack;
+					character.MoveChar(closestHealthPack.transform.position);
+					character.SetFacing(closestHealthPack.transform.position);
+					return;
+				}
+			} if (middleObjective.getControllingTeam () != ourTeamColor) {
 				// must capture middle objective
 				targetObjectives [characterIndex] = middleObjective;
 
