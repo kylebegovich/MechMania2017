@@ -1,7 +1,7 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class FIDGET_WINNERZ : MonoBehaviour
+public class fidgetwinners : MonoBehaviour
 {
     //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
 
@@ -28,9 +28,9 @@ public class FIDGET_WINNERZ : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-    public static FIDGET_WINNERZ AddYourselfTo(GameObject host)
+    public static fidgetwinners AddYourselfTo(GameObject host)
     {
-        return host.AddComponent<FIDGET_WINNERZ>();
+        return host.AddComponent<fidgetwinners>();
     }
 
 	private ObjectiveScript[] targetObjectives;
