@@ -50,9 +50,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-	aiMethods[0] = KillSquadAI;
-	aiMethods[1] = KillSquadAI;
-	aiMethods[2] = KillSquadAI;
+	aiMethods[0] = spawnTrap;
+	aiMethods[1] = spawnTrap;
+	aiMethods[2] = spawnTrap;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -88,24 +88,43 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
     	// Setup loadout for characters
     	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-    		if (characterIndex == 1 || characterIndex == 3)
-    			character.setLoadout(loadout.SHORT);
-    		else
+    		if (characterIndex == 0 || characterIndex == 2)
     			character.setLoadout(loadout.MEDIUM);
+    		else
+    			character.setLoadout(loadout.SHORT);
 
-    	// Rush to middle point
-    	character.MoveChar(middleObjective.transform.position);
-    	character.SetFacing(middleObjective.transform.position);
+        // Rush to middle point
+        if (middleObjective.getControllingTeam() != character1.getTeam() || middleObjective.getControllingTeam() == null)
+        {
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
 
-    	while (middleObjective.getControllingTeam() == character1.getTeam())
+        if (middleObjective.getControllingTeam() == character1.getTeam())
     	{
-    		if (characterIndex == 1 || characterIndex == 3) 
-    		{
-    			
-    		}
+            if (characterIndex == 0)
+            {
+                character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
+                spin(character, characterIndex);
+            }
+            else if (characterIndex == 2)
+            {
+                character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
+                spin(character, characterIndex);
+            }
             else
             {
-                spin(character, characterIndex);
+                if (rightObjective.getControllingTeam() != character1.getTeam())
+                {
+                    character.MoveChar(rightObjective.transform.position);
+                    character.SetFacing(rightObjective.transform.position);
+                }
+                else
+                {
+                    character.MoveChar(leftObjective.transform.position);
+                    character.SetFacing(leftObjective.transform.position);
+                }
+                
             }
     	}
     }
@@ -309,7 +328,21 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 	void spin(CharacterScript character, int characterIndex)
 	{
-		character.rotateAngle (315f);
+		character.rotateAngle (600f);
+	}
+
+	// returns: bool[] where *true* denotes index of an ally within 35m of character
+	bool[] getNearAllies(CharacterScript character, int characterIndex)
+	{
+		bool[] isNearArr = new bool[3];
+		for (int i = 0; i < characters.Length; i++) {
+			if (i != characterIndex) {
+				isNearArr [i] = Vector3.Distance (character.transform.position, characters [i].transform.position) < 35;
+			} else {
+				isNearArr [i] = false;
+			}
+		}
+		return isNearArr;
 	}
 }
 
