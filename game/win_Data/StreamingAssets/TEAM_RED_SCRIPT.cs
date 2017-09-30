@@ -137,8 +137,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             for (int i = 0; i < 3; i++)
             {
                 lastWentToLeft[i] = true;
-                //characters[i].MoveChar(currentObjective.transform.position);
-                //characters[i].SetFacing(currentObjective.transform.position);
             }
         }
 
@@ -146,15 +144,20 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
+        // Enable FIDGET SPINNING
+        Lookout(character, characterIndex);
+
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
         characters[characterIndex].MoveChar(currentObjective.transform.position);
         characters[characterIndex].SetFacing(currentObjective.transform.position);
 
         if (currentObjective == middleObjective)
         {
+            // Continue moving until we are less than 5 distance away
             if (Vector3.Distance(currentObjective.transform.position, character.getPrefabObject().transform.position) > 5)
                 return;
 
+            // We are less than 5 distance, cap the point if not capped
             if (middleObjective.getControllingTeam() != ourTeamColor)
             {
                 return;
