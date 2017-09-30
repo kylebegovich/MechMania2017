@@ -19,14 +19,11 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
     [SerializeField]
     public CharacterScript character3;
 
-    private Vector3 poss;
-
     void Start()
     {
         character1 = transform.Find("Character1").gameObject.GetComponent<CharacterScript>();
         character2 = transform.Find("Character2").gameObject.GetComponent<CharacterScript>();
         character3 = transform.Find("Character3").gameObject.GetComponent<CharacterScript>();
-        poss = character1.transform.position;
     }
     /*^^^^ DO NOT MODIFY ^^^^*/
 
@@ -44,7 +41,6 @@ public class TEAM_BLUE_SCRIPT : MonoBehaviour
         character2.rotateAngle(500);
         character3.rotateAngle(500);
 
-        if (poss == new Vector3());
         character1.MoveChar(new Vector3());
         character2.MoveChar(new Vector3(40.0f, 1.5f, 24.0f));
         character3.MoveChar(new Vector3(-40.0f, 1.5f, -24.0f));
