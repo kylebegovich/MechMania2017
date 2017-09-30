@@ -91,7 +91,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
     }
 
-    public struct Strategy
+    public class Strategy
     {
         public string name;
         public CharacterAIMethod[] strategyAIMethods;
