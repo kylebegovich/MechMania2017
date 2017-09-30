@@ -57,9 +57,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-		aiMethods [0] = CapAndCamp; //KillSquadAI;
-		aiMethods [1] = CapAndCamp; //KillSquadAI;
-		aiMethods [2] = CapAndCamp; //KillSquadAI;
+		aiMethods [0] = KillSquadAI;
+		aiMethods [1] = KillSquadAI;
+		aiMethods [2] = KillSquadAI;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -79,24 +79,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
 
-    }
-
-    void character1AI(CharacterScript character, int characterIndex)
-    {
-        character.MoveChar(leftObjective.transform.position);
-        character.SetFacing(leftObjective.transform.position);
-    }
-
-    void character2AI(CharacterScript character, int characterIndex)
-    {
-        character.MoveChar(leftObjective.transform.position);
-        character.SetFacing(leftObjective.transform.position);
-    }
-
-    void character3AI(CharacterScript character, int characterIndex)
-    {
-        character.MoveChar(rightObjective.transform.position);
-        character.SetFacing(rightObjective.transform.position);
     }
 
     void spawnTrap(CharacterScript character, int characterIndex)
