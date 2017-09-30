@@ -38,7 +38,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private List<Vector3> knownEnemyLocs;
 
 	// TODO: figure out what this should be
-	private const float MAX_NEAR_DIST = 20; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
+	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
     delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
@@ -57,9 +57,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-		aiMethods [0] = KillSquadAI;
-		aiMethods [1] = KillSquadAI;
-		aiMethods [2] = KillSquadAI;
+		aiMethods [0] = CapAndCamp;
+		aiMethods [1] = CapAndCamp;
+		aiMethods [2] = CapAndCamp;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
