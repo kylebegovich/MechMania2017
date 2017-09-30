@@ -63,9 +63,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
-		aiMethods [0] = KillSquadAI;
-		aiMethods [1] = KillSquadAI;
-		aiMethods [2] = KillSquadAI;
+		aiMethods [0] = CapAndCamp;
+		aiMethods [1] = CapAndCamp;
+		aiMethods [2] = CapAndCamp;
 
 
         // populate the objectives
@@ -180,6 +180,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		//         ^--- :(
         SlowLookout(character, characterIndex);
 
+		//TODO: should only be able to seek health after target point is capped.
         if (character.getHP() < 99)
         {
             if (targetPowerups[characterIndex] != null && 
@@ -345,19 +346,18 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	{
 		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
 		if (leastNeighborIndex == characterIndex) {
-			character.SetFacing(spinQuat * Vector3.forward);
+			character.rotateAngle (90);
+			spinQuat = character.getPrefabObject ().transform.rotation;
 		} else if (GetNeighborCount (character, characterIndex) == 2) {
-			character.SetFacing (spinQuat * Quaternion.Euler (0, 180, 0) * Vector3.forward);
+			character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 180, 0)) * Vector3.forward);
 		} else {
 			// characters should face at thirds...
 			if (characterIndex == 2) {
-				character.SetFacing (spinQuat * Quaternion.Euler (0, 120, 0) * Vector3.forward);
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 120, 0)) * Vector3.forward);
 			} else {
-				character.SetFacing (spinQuat * Quaternion.Euler (0, 240, 0) * Vector3.forward);
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 240, 0)) * Vector3.forward);
 			}
 		}
-
-		spinQuat = spinQuat * Quaternion.Euler (0, 30, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 
 	void Spin(CharacterScript character, int characterIndex)
