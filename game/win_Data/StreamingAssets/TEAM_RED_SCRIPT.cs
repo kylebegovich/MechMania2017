@@ -215,7 +215,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             {
                 Guard(character, characterIndex, middleObjective.transform.position);
                 character.SetFacing(middleObjective.transform.position);
-                character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
+                character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
             }
             else
                 character.MoveChar(middleObjective.transform.position);
@@ -226,7 +226,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             {
                 Guard(character, characterIndex, rightObjective.transform.position);
                 character.SetFacing(rightObjective.transform.position);
-                character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
+                character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
             }
             else
                 character.MoveChar(rightObjective.transform.position);
@@ -237,7 +237,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             {
                 Guard(character, characterIndex, leftObjective.transform.position);
                 character.SetFacing(leftObjective.transform.position);
-                character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, 5), teamVectorFactor));
+                character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
             }
             else
                 character.MoveChar(leftObjective.transform.position);
