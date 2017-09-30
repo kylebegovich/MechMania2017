@@ -59,7 +59,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
-        SetOverallStrategy(STRAT_FIFTY_KITE);
+        SetOverallStrategy(STRAT_POWERUP_WHORE);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -108,6 +108,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     Strategy STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
     Strategy STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
     Strategy STRAT_FIFTY_KITE;  // Kite for days
+    Strategy STRAT_POWERUP_WHORE; // Just go for powerups
+    
 
     void InitializeStrategies()
     {
@@ -115,12 +117,14 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         STRAT_SPAWN_KILL_WITH_HUNT = new Strategy("STRAT_SPAWN_KILL", new CharacterAIMethod[] {spawnTrap, KillSquadAI, spawnTrap});
         STRAT_CAP_AND_CAMP = new Strategy("STRAT_CAP_AND_CAMP", new CharacterAIMethod[] {CapAndCamp, CapAndCamp, CapAndCamp});
         STRAT_FIFTY_KITE = new Strategy("STRAT_FIFTY_KITE", new CharacterAIMethod[] { kiteEnemies, kiteEnemies, kiteEnemies });
+        STRAT_POWERUP_WHORE = new Strategy("STRAT_POWERUP_WHORE", new CharacterAIMethod[] {PowerupWhore, PowerupWhore, PowerupWhore});
 
         allStrategies = new List<Strategy>();
         allStrategies.Add(STRAT_PURE_KILL_SQUAD);
         allStrategies.Add(STRAT_SPAWN_KILL_WITH_HUNT);
         allStrategies.Add(STRAT_CAP_AND_CAMP);
         allStrategies.Add(STRAT_FIFTY_KITE);
+        allStrategies.Add(STRAT_POWERUP_WHORE);
     }
 
     void SetOverallStrategy(Strategy strategyToSet)
@@ -140,6 +144,44 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         }
 
         // Strategy not found
+    }
+
+    void PowerupWhore(CharacterScript character, int characterIndex)
+    {
+        if (characterIndex == 0 && timer == 1)
+        {
+            character.MoveChar(middleObjective.transform.position);
+        }
+
+        GameObject currentPowerup = targetPowerups[characterIndex];
+        if (currentPowerup != null)
+        {
+            float distanceToPowerup = Vector3.Distance(currentPowerup.transform.position, character.getPrefabObject().transform.position);
+            if (distanceToPowerup > 3)
+            {
+                return;
+            }
+            else
+            {
+                for (int i = 0; i < 3; i++)
+                {
+                    if (targetPowerups[i] == currentPowerup)
+                    {
+                        targetPowerups[i] = null;
+                        characters[i].MoveChar(leftObjective.transform.position);
+                    }
+                }
+            }
+        }
+
+        GameObject closestHealthPack = findClosestItemOfType(character, "PowerItem(Clone)");
+        if (closestHealthPack != null)
+        {
+            targetPowerups[characterIndex] = closestHealthPack;
+            character.MoveChar(closestHealthPack.transform.position);
+            Guard(character, characterIndex, closestHealthPack.transform.position);
+            return;
+        }
     }
 
     // Need to pass in the name of the powerup because reasons
@@ -368,11 +410,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     void Update()
     {
-        if (timer == 1)
-        {
-            SetOverallStrategy(STRAT_FIFTY_KITE);
-        }
-
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
