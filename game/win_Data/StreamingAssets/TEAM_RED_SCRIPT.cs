@@ -68,12 +68,18 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
+<<<<<<< HEAD
 
 
 		aiMethods [0] = kiteEnemies;
 		aiMethods [1] = kiteEnemies;
 		aiMethods [2] = kiteEnemies;
       
+=======
+		aiMethods [0] = spawnTrap;
+		aiMethods [1] = spawnTrap;
+		aiMethods [2] = spawnTrap;
+>>>>>>> 041969d507b17a1eb7126a8954f94248ac7029a5
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -149,13 +155,13 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         {
             if (characterIndex == 0)
             { 
-              character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-              SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
+              	SlowLookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
-                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                 SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
+				SlowLookout (character, characterIndex);
             }
         }
 
