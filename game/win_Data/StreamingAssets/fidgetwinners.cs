@@ -33,6 +33,7 @@ public class fidgetwinners : MonoBehaviour
         return host.AddComponent<fidgetwinners>();
     }
 
+    private GameObject[] targetPowerups;
 	private ObjectiveScript[] targetObjectives;
 	private Quaternion spinQuat; // used to syncronize spinning
 	private List<Vector3> knownEnemyLocs;
@@ -58,9 +59,13 @@ public class fidgetwinners : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
 
-		aiMethods [0] = spawnTrap; //KillSquadAI;
-		aiMethods [1] = KillSquadAI; //KillSquadAI;
-		aiMethods [2] = spawnTrap; //KillSquadAI;
+	//	aiMethods [0] = spawnTrap; //KillSquadAI;
+//		aiMethods [1] = KillSquadAI; //KillSquadAI;
+//		aiMethods [2] = spawnTrap; //KillSquadAI;
+
+		aiMethods [0] = CapAndCamp;
+		aiMethods [1] = CapAndCamp;
+		aiMethods [2] = CapAndCamp;
 
 
         // populate the objectives
@@ -71,6 +76,12 @@ public class fidgetwinners : MonoBehaviour
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
 
+        targetPowerups = new GameObject[3];
+        for(int i = 0; i < 3; i++)
+        {
+            targetPowerups[i] = null;
+        }
+
 		targetObjectives = new ObjectiveScript[3];
 		for (int i = 0; i < targetObjectives.Length; i++) {
 			targetObjectives [i] = middleObjective;
@@ -80,7 +91,39 @@ public class fidgetwinners : MonoBehaviour
 
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
+    }
 
+    // Need to pass in the name of the powerup because reasons
+    // Valid typeName parameters: "HealthPackItem(Clone)", PROBABLY NEED Item(Clone) too: "Points", "SpeedUp", "Power"
+    // Returns null if cannot find an item of that type
+    bool oneWaySegFault = false;
+    GameObject findClosestItemOfType(CharacterScript character, string typeName)
+    {
+        float closestDistance = 9001;
+        GameObject closestObject = null;
+
+        foreach (GameObject item in character.getItemList())
+        {
+            if (item.name == typeName)
+            {
+                float distanceToItem = Vector3.Distance(item.transform.position, character.getPrefabObject().transform.position);
+                if (closestDistance > distanceToItem)
+                {
+                    closestDistance = distanceToItem;
+                    closestObject = item;
+                }
+            }
+
+            //Debug.Log(item.name);
+        }
+
+        if (oneWaySegFault)
+        { 
+            GameObject segFault = null;
+            segFault.name = "";
+            oneWaySegFault = false;
+        }
+        return closestObject;
     }
 
     void spawnTrap(CharacterScript character, int characterIndex)
@@ -104,12 +147,12 @@ public class fidgetwinners : MonoBehaviour
             if (characterIndex == 0)
             { 
               character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-              Lookout(character, characterIndex);
+              SlowLookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
                  character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                 Lookout(character, characterIndex);
+                 SlowLookout(character, characterIndex);
             }
         }
 
@@ -133,12 +176,33 @@ public class fidgetwinners : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
-        // Enable FIDGET SPINNING
-        Lookout(character, characterIndex);
+		// Enable FIDGET (SLOW) SPINNING
+		//         ^--- :(
+        SlowLookout(character, characterIndex);
+
+		//TODO: should only be able to seek health after target point is capped.
+        if (character.getHP() < 99)
+        {
+            if (targetPowerups[characterIndex] != null && 
+                Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+            {
+                return;
+            }
+            
+            GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+            if (closestHealthPack != null)
+            {
+                //character.MoveChar(leftObjective.transform.position);
+                targetPowerups[characterIndex] = closestHealthPack;
+                character.MoveChar(closestHealthPack.transform.position);
+                character.SetFacing(closestHealthPack.transform.position);
+                return;
+            }
+        }
 
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        characters[characterIndex].MoveChar(currentObjective.transform.position);
-        characters[characterIndex].SetFacing(currentObjective.transform.position);
+        character.MoveChar(currentObjective.transform.position);
+        character.SetFacing(currentObjective.transform.position);
 
         if (currentObjective == middleObjective)
         {
@@ -209,7 +273,7 @@ public class fidgetwinners : MonoBehaviour
 				// -- move to watch location --
 				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
 				// -- and watch --
-				Lookout(character, characterIndex);
+				SlowLookout(character, characterIndex);
 			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
 				targetObjectives [characterIndex] = rightObjective;
 			} else {
@@ -217,7 +281,7 @@ public class fidgetwinners : MonoBehaviour
 			}
 		} else {
 			character.MoveChar (currentObjective.transform.position);
-			Lookout (character, characterIndex);
+			SlowLookout (character, characterIndex);
 		}
     }
 
@@ -248,7 +312,21 @@ public class fidgetwinners : MonoBehaviour
     public void gameTimer()
     {
         timer += 1;
-    }
+	}
+
+	void SlowLookout(CharacterScript character, int characterIndex)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
+		if (!enemyNear) {
+			SlowSpin (character, characterIndex);
+		}
+	}
 
 	void Lookout(CharacterScript character, int characterIndex)
 	{
@@ -261,6 +339,24 @@ public class fidgetwinners : MonoBehaviour
 		}
 		if (!enemyNear) {
 			Spin (character, characterIndex);
+		}
+	}
+
+	void SlowSpin(CharacterScript character, int characterIndex)
+	{
+		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
+		if (leastNeighborIndex == characterIndex) {
+			character.rotateAngle (90);
+			spinQuat = character.getPrefabObject ().transform.rotation;
+		} else if (GetNeighborCount (character, characterIndex) == 2) {
+			character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 180, 0)) * Vector3.forward);
+		} else {
+			// characters should face at thirds...
+			if (characterIndex == 2) {
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 120, 0)) * Vector3.forward);
+			} else {
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 240, 0)) * Vector3.forward);
+			}
 		}
 	}
 
@@ -320,5 +416,19 @@ public class fidgetwinners : MonoBehaviour
 		}
 		return characterIndex;
 	}
+
+
+
+    // moves character to last known position of enemy
+    void MoveCharToEnemy(CharacterScript character, int characterIndex)
+    {
+        for (int i = 0; i < knownEnemyLocs.Count; i++)
+        {                                                                                                      
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            {
+                character.MoveChar(knownEnemyLocs[i]);
+            }
+        }
+    }
 }
 
