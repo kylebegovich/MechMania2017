@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-//---------- CHANGE THIS NAME HERE -------
 public class TEAM_RED_SCRIPT : MonoBehaviour
 {
     //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
@@ -21,7 +20,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     /// </summary>
     /// 
 
-
     // USEFUL VARIABLES
     private ObjectiveScript middleObjective;
     private ObjectiveScript leftObjective;
@@ -29,12 +27,23 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-    //---------- CHANGE THIS NAME HERE -------
     public static TEAM_RED_SCRIPT AddYourselfTo(GameObject host)
     {
-        //---------- CHANGE THIS NAME HERE -------
         return host.AddComponent<TEAM_RED_SCRIPT>();
     }
+
+    private GameObject[] targetPowerups;
+	private ObjectiveScript[] targetObjectives;
+	private Quaternion spinQuat; // used to syncronize spinning
+	private List<Vector3> knownEnemyLocs;
+	private Vector3 teamVectorFactor;
+
+	// TODO: figure out what this should be
+	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
+
+    public delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
+    CharacterScript[] characters;
+    CharacterAIMethod[] aiMethods;
 
     void Start()
     {
@@ -43,6 +52,15 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         character2 = transform.Find("Character2").gameObject.GetComponent<CharacterScript>();
         character3 = transform.Find("Character3").gameObject.GetComponent<CharacterScript>();
 
+        characters = new CharacterScript[3];
+        characters[0] = character1;
+        characters[1] = character2;
+        characters[2] = character3;
+
+        aiMethods = new CharacterAIMethod[3];
+        InitializeStrategies();
+        SetOverallStrategy(STRAT_SPAWN_KILL_WITH_HUNT);
+
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
         leftObjective = GameObject.Find("LeftObjective").GetComponent<ObjectiveScript>();
@@ -50,65 +68,320 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
+		if (ourTeamColor == team.red) {
+			teamVectorFactor = new Vector3 (1, 1, 1);
+		} else {
+			teamVectorFactor = new Vector3 (-1, 1, -1);
+		}
+
+        targetPowerups = new GameObject[3];
+        for(int i = 0; i < 3; i++)
+        {
+            targetPowerups[i] = null;
+        }
+
+		targetObjectives = new ObjectiveScript[3];
+		for (int i = 0; i < targetObjectives.Length; i++) {
+			targetObjectives [i] = middleObjective;
+		}
+		spinQuat = Quaternion.identity;
+		knownEnemyLocs = new List<Vector3> ();
+
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
+    }
 
+    public class Strategy
+    {
+        public string name;
+        public CharacterAIMethod[] strategyAIMethods;
+
+        public Strategy(string strategyName, CharacterAIMethod[] aiMethods)
+        {
+            name = strategyName;
+            strategyAIMethods = aiMethods;
+        }
+    }
+
+    List<Strategy> allStrategies;
+    Strategy STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
+    Strategy STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
+    Strategy STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
+
+    void InitializeStrategies()
+    {
+        STRAT_PURE_KILL_SQUAD = new Strategy("STRAT_PURE_KILL_SQUAD", new CharacterAIMethod[] {KillSquadAI, KillSquadAI, KillSquadAI});
+        STRAT_SPAWN_KILL_WITH_HUNT = new Strategy("STRAT_SPAWN_KILL", new CharacterAIMethod[] {spawnTrap, KillSquadAI, spawnTrap});
+        STRAT_CAP_AND_CAMP = new Strategy("STRAT_CAP_AND_CAMP", new CharacterAIMethod[] {CapAndCamp, CapAndCamp, CapAndCamp});
+
+        allStrategies = new List<Strategy>();
+        allStrategies.Add(STRAT_PURE_KILL_SQUAD);
+        allStrategies.Add(STRAT_SPAWN_KILL_WITH_HUNT);
+        allStrategies.Add(STRAT_CAP_AND_CAMP);
+    }
+
+    void SetOverallStrategy(Strategy strategyToSet)
+    {
+        for (int i = 0; i < allStrategies.Count; i++)
+        {
+            if (strategyToSet.name == allStrategies[i].name)
+            {
+                for (int j = 0; j < 3; j++)
+                {
+                    aiMethods[j] = allStrategies[i].strategyAIMethods[j];
+                }
+
+                allStrategies.RemoveAt(i);
+                return;
+            }
+        }
+
+        // Strategy not found
+    }
+
+    // Need to pass in the name of the powerup because reasons
+    // Valid typeName parameters: "HealthPackItem(Clone)", PROBABLY NEED Item(Clone) too: "Points", "SpeedUp", "Power"
+    // Returns null if cannot find an item of that type
+    GameObject findClosestItemOfType(CharacterScript character, string typeName)
+    {
+        float closestDistance = 9001;
+        GameObject closestObject = null;
+
+        foreach (GameObject item in character.getItemList())
+        {
+            if (item.name == typeName)
+            {
+                float distanceToItem = Vector3.Distance(item.transform.position, character.getPrefabObject().transform.position);
+                if (closestDistance > distanceToItem)
+                {
+                    closestDistance = distanceToItem;
+                    closestObject = item;
+                }
+            }
+        }
+
+        return closestObject;
+    }
+
+    void spawnTrap(CharacterScript character, int characterIndex)
+    {
+        // Setup loadout for characters
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+            character.setLoadout(loadout.SHORT);
+
+        // Rush to middle point
+        if (timer <= 15)
+        {
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
+
+
+
+        // Have other two characters near enemy spawn and camp
+        if (timer > 15)
+        {
+            if (characterIndex == 0)
+            { 
+				character.MoveChar(Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
+              	SlowLookout(character, characterIndex);
+            }
+            else if (characterIndex == 2)
+            {
+				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
+				SlowLookout (character, characterIndex);
+            }
+        }
+
+    } 
+
+
+    void kiteEnemies(CharacterScript character, int characterIndex)
+    {
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+        {
+            character.setLoadout(loadout.LONG);
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
+        
+        for (int i = 0; i < 3; i ++)
+        {
+            MoveCharAwayEnemy(character, i);
+        }
+        
+        
+
+    }
+
+    private bool[] lastWentToLeft = null;
+    void KillSquadAI(CharacterScript character, int characterIndex)
+    {
+        // Initialize necessary data
+		if (lastWentToLeft == null)
+        {
+            lastWentToLeft = new bool[3];
+
+            for (int i = 0; i < 3; i++)
+            {
+                lastWentToLeft[i] = true;
+            }
+        }
+
+        // Ensure all characters have SHORT layout
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+            character.setLoadout(loadout.SHORT);
+
+		// Enable FIDGET (SLOW) SPINNING
+		//         ^--- :(
+        SlowLookout(character, characterIndex);
+
+		//TODO: should only be able to seek health after target point is capped.
+        if (character.getHP() < 99)
+        {
+            if (targetPowerups[characterIndex] != null && 
+                Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+            {
+                return;
+            }
+            
+            GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+            if (closestHealthPack != null)
+            {
+                //character.MoveChar(leftObjective.transform.position);
+                targetPowerups[characterIndex] = closestHealthPack;
+                character.MoveChar(closestHealthPack.transform.position);
+                character.SetFacing(closestHealthPack.transform.position);
+                return;
+            }
+        }
+
+        ObjectiveScript currentObjective = targetObjectives[characterIndex];
+        character.MoveChar(currentObjective.transform.position);
+        character.SetFacing(currentObjective.transform.position);
+
+        if (currentObjective == middleObjective)
+        {
+            // Continue moving until we are less than 5 distance away
+            if (Vector3.Distance(currentObjective.transform.position, character.getPrefabObject().transform.position) > 5)
+                return;
+
+            // We are less than 5 distance, cap the point if not capped
+            if (middleObjective.getControllingTeam() != ourTeamColor)
+            {
+                return;
+            }
+
+            // We are currently at captured middle position (Home Base) 
+            // Evaluate whether should go to left or right
+            if (leftObjective.getControllingTeam() != ourTeamColor && rightObjective.getControllingTeam() != ourTeamColor)
+            {
+                // Should probably choose at random
+                if (lastWentToLeft[characterIndex])
+                {
+                    targetObjectives[characterIndex] = rightObjective;
+                    lastWentToLeft[characterIndex] = false;
+                }
+                else
+                {
+                    targetObjectives[characterIndex] = leftObjective;
+                    lastWentToLeft[characterIndex] = true;
+                }
+            }
+            else
+            if (leftObjective.getControllingTeam() != ourTeamColor)
+            {
+                targetObjectives[characterIndex] = leftObjective;
+            }
+            else
+            {
+                targetObjectives[characterIndex] = rightObjective;
+            }
+
+            return;
+        }
+
+        // Heading towards either left or right objective
+        if (currentObjective.getControllingTeam() == ourTeamColor)
+        {
+            // Objective captured, head back to home base
+            targetObjectives[characterIndex] = middleObjective;
+            return;
+        }
+    }
+
+	// TODO: Sometimes characters will move towards already guarded Objective right after it is capped when respawning
+	void CapAndCamp(CharacterScript character, int characterIndex) {
+
+		// Ensure all characters have MEDIUM layout
+		if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+			character.setLoadout(loadout.SHORT);
+
+		ObjectiveScript currentObjective = targetObjectives [characterIndex];
+
+		if (currentObjective.getControllingTeam () == ourTeamColor) {
+			if (character.getHP () < 70) {
+				if (targetPowerups[characterIndex] != null && 
+					Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+				{
+					return;
+				}
+
+				GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+				if (closestHealthPack != null)
+				{
+					//character.MoveChar(leftObjective.transform.position);
+					targetPowerups[characterIndex] = closestHealthPack;
+					character.MoveChar(closestHealthPack.transform.position);
+					character.SetFacing(closestHealthPack.transform.position);
+					return;
+				}
+			} if (middleObjective.getControllingTeam () != ourTeamColor) {
+				// must capture middle objective
+				targetObjectives [characterIndex] = middleObjective;
+
+			} else if (GetLeastNeighborIndex (character, characterIndex) == characterIndex) {
+				// leave least index neighboring ally to guard
+				// -- move to watch location --
+				character.MoveChar (currentObjective.transform.position + Vector3.Scale(new Vector3 (-5, 0, 5), teamVectorFactor));
+				// -- and watch --
+				Guard(character, characterIndex, currentObjective.transform.position);
+			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
+				targetObjectives [characterIndex] = rightObjective;
+			} else {
+				targetObjectives [characterIndex] = leftObjective;
+			}
+		} else {
+			character.MoveChar (currentObjective.transform.position);
+			SlowLookout (character, characterIndex);
+		}
     }
 
     void Update()
     {
-        //Set caracter loadouts, can only happen when the characters are at base.
-        if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
-            character1.setLoadout(loadout.LONG);
-        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
-            character2.setLoadout(loadout.LONG);
-        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
-            character3.setLoadout(loadout.LONG);
+        if (timer == 60)
+        {
+            SetOverallStrategy(STRAT_PURE_KILL_SQUAD);
+        }
 
-        // in the first couple of seconds we just scan around
-        if (timer < 10)
+        if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
+            character1.setLoadout(loadout.SHORT);
+        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
+            character2.setLoadout(loadout.SHORT);
+        if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
+            character3.setLoadout(loadout.SHORT);
+
+		knownEnemyLocs.Clear ();
+		for (int i = 0; i < characters.Length; i++) {
+			knownEnemyLocs.AddRange(characters[i].visibleEnemyLocations); // might be something wrong with visibleEnemyLocations breaking Lookout()
+			knownEnemyLocs.AddRange(characters[i].attackedFromLocations); //                - -            attackedFromLocations        - -
+			characters[i].attackedFromLocations.Clear();
+		}
+
+        // Run the individual AI methods for each character as specified by delegation 
+        for (int i = 0; i < 3; i++)
         {
-            character1.FaceClosestWaypoint();
-            character2.FaceClosestWaypoint();
-            character3.FaceClosestWaypoint();
-            character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
-        }
-        // place sniper in position, run to cover if attacked
-        if (character1.attackedFromLocations.Capacity == 0)
-        {
-            character1.MoveChar(new Vector3(-8.8f, 1.5f, 13.5f));
-            character1.SetFacing(middleObjective.transform.position);
-        }
-        else
-        {
-            character1.MoveChar(character1.FindClosestCover(character1.attackedFromLocations[0]));
-        }
-        // send other two to capture
-        if (middleObjective.getControllingTeam() != character1.getTeam())
-        {
-            character2.MoveChar(middleObjective.transform.position);
-            character2.SetFacing(middleObjective.transform.position);
-            character3.MoveChar(middleObjective.transform.position);
-            character3.SetFacing(middleObjective.transform.position);
-        }
-        else
-        {
-            // Then left
-            if (leftObjective.getControllingTeam() != character1.getTeam())
-            {
-                character2.MoveChar(leftObjective.transform.position);
-                character2.SetFacing(leftObjective.transform.position);
-                character3.MoveChar(leftObjective.transform.position);
-                character3.SetFacing(leftObjective.transform.position);
-            }
-            // Then RIght
-            if (rightObjective.getControllingTeam() != character1.getTeam())
-            {
-                character2.MoveChar(rightObjective.transform.position);
-                character2.SetFacing(rightObjective.transform.position);
-                character3.MoveChar(rightObjective.transform.position);
-                character3.SetFacing(rightObjective.transform.position);
-            }
+            aiMethods[i](characters[i], i);
         }
     }
 
@@ -116,7 +389,135 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     public void gameTimer()
     {
         timer += 1;
-    }
+	}
 
+	void Guard(CharacterScript character, int characterIndex, Vector3 target)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
+	}
+
+	void SlowLookout(CharacterScript character, int characterIndex)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
+		if (!enemyNear) {
+			SlowSpin (character, characterIndex);
+		}
+	}
+
+	void Lookout(CharacterScript character, int characterIndex)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.getPrefabObject().transform.rotation = Quaternion.LookRotation((knownEnemyLocs [i] - character.getPrefabObject().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
+		if (!enemyNear) {
+			Spin (character, characterIndex);
+		}
+	}
+
+	void SlowSpin(CharacterScript character, int characterIndex)
+	{
+		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
+		if (leastNeighborIndex == characterIndex) {
+			character.rotateAngle (90);
+			spinQuat = character.getPrefabObject ().transform.rotation;
+		} else if (GetNeighborCount (character, characterIndex) == 2) {
+			character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 180, 0)) * Vector3.forward);
+		} else {
+			// characters should face at thirds...
+			if (characterIndex == 2) {
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 120, 0)) * Vector3.forward);
+			} else {
+				character.SetFacing (character.getPrefabObject().transform.position + (spinQuat * Quaternion.Euler (0, 240, 0)) * Vector3.forward);
+			}
+		}
+	}
+
+	void Spin(CharacterScript character, int characterIndex)
+	{
+		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
+		if (leastNeighborIndex == characterIndex) {
+			character.getPrefabObject().transform.rotation = spinQuat;
+		} else if (GetNeighborCount (character, characterIndex) == 2) {
+			character.getPrefabObject().transform.rotation = spinQuat * Quaternion.Euler(0, 180, 0);
+		} else {
+			// characters should face at thirds...
+			if (characterIndex == 2) {
+				character.getPrefabObject().transform.rotation = spinQuat * Quaternion.Euler(0, 120, 0);
+			} else {
+				character.getPrefabObject().transform.rotation = spinQuat * Quaternion.Euler (0, 240, 0);
+			}
+		}
+
+		spinQuat = spinQuat * Quaternion.Euler (0, 30, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
+	}
+	
+	
+	// returns: bool[] where *true* denotes index of an ally within MAX_NEAR_DIST of character (excluding self)
+	bool[] GetNearAllies(CharacterScript character, int characterIndex)
+	{
+		bool[] isNearArr = new bool[3];
+		for (int i = 0; i < characters.Length; i++) {
+			if (i != characterIndex) {
+				isNearArr [i] = Vector3.Distance (character.getPrefabObject().transform.position, characters [i].getPrefabObject().transform.position) < MAX_NEAR_DIST;
+			} else {
+				isNearArr [i] = false;
+			}
+		}
+		return isNearArr;
+	}
+
+	// returns: number of allies in range (including self)
+	int GetNeighborCount(CharacterScript character, int characterIndex)
+	{
+		int count = 0;
+		for (int i = 0; i < characters.Length; i++) {
+			if (Vector3.Distance (character.getPrefabObject ().transform.position, characters [i].getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				count++;
+			}
+		}
+		return count;
+	}
+	
+	// return highest index of near allies (including self)
+	int GetLeastNeighborIndex(CharacterScript character, int characterIndex)
+	{
+		for(int i = 0; i < characters.Length; i++) {
+			if(Vector3.Distance(character.getPrefabObject().transform.position, characters[i].getPrefabObject().transform.position) < MAX_NEAR_DIST) {
+				return i;
+			}
+		}
+		return characterIndex;
+	}
+
+
+
+    // moves character to last known position of enemy
+    void MoveCharAwayEnemy(CharacterScript character, int characterIndex)
+    {
+        for (int i = 0; i < knownEnemyLocs.Count; i++)
+        {                                                                                                      
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) >= 35)  
+            {
+                character.SetFacing(knownEnemyLocs[i]);
+                character.MoveChar(-knownEnemyLocs[i]);
+            }
+        }
+    }
 }
 
