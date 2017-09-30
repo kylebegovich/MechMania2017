@@ -58,9 +58,32 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
+<<<<<<< HEAD
+=======
+
+	//	aiMethods [0] = spawnTrap; //KillSquadAI;
+//		aiMethods [1] = KillSquadAI; //KillSquadAI;
+//		aiMethods [2] = spawnTrap; //KillSquadAI;
+
+<<<<<<< HEAD
+		aiMethods [0] = kiteEnemies;
+		aiMethods [1] = kiteEnemies;
+		aiMethods [2] = kiteEnemies;
+=======
+<<<<<<< HEAD
+
+
+		aiMethods [0] = kiteEnemies;
+		aiMethods [1] = kiteEnemies;
+		aiMethods [2] = kiteEnemies;
+      
+=======
+>>>>>>> 7015c6da5db68299405116fe2ff81b50703f4f3a
 		aiMethods [0] = spawnTrap;
-		aiMethods [1] = KillSquadAI;
+		aiMethods [1] = spawnTrap;
 		aiMethods [2] = spawnTrap;
+>>>>>>> 041969d507b17a1eb7126a8954f94248ac7029a5
+>>>>>>> 75a63a2a740156b73f5147289c351c8ba3b815a4
 
         InitializeStrategies();
         SetOverallStrategy(STRAT_SPAWN_KILL_WITH_HUNT);
@@ -187,15 +210,34 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         {
             if (characterIndex == 0)
             { 
-              character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-              SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(40.0f, 1.5f, -29.0f), teamVectorFactor));
+              	SlowLookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
-                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                 SlowLookout(character, characterIndex);
+				character.MoveChar(Vector3.Scale(new Vector3(50.0f, 1.5f, -20.0f), teamVectorFactor));
+				SlowLookout (character, characterIndex);
             }
         }
+
+    } 
+
+
+    void kiteEnemies(CharacterScript character, int characterIndex)
+    {
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+        {
+            character.setLoadout(loadout.LONG);
+            character.MoveChar(middleObjective.transform.position);
+            character.SetFacing(middleObjective.transform.position);
+        }
+        
+        for (int i = 0; i < 3; i ++)
+        {
+            MoveCharAwayEnemy(character, i);
+        }
+        
+        
 
     }
 
@@ -493,13 +535,14 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 
     // moves character to last known position of enemy
-    void MoveCharToEnemy(CharacterScript character, int characterIndex)
+    void MoveCharAwayEnemy(CharacterScript character, int characterIndex)
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) >= 35)  
             {
-                character.MoveChar(knownEnemyLocs[i]);
+                character.SetFacing(knownEnemyLocs[i]);
+                character.MoveChar(-knownEnemyLocs[i]);
             }
         }
     }
