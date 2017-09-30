@@ -33,6 +33,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         return host.AddComponent<TEAM_RED_SCRIPT>();
     }
 
+	private ObjectiveScript[] targetObjectives;
+	private const float MAX_NEAR_DIST = 10; // maximum distance to be considered 'near' to another player;
+
     delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
     CharacterAIMethod[] aiMethods;
@@ -50,9 +53,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-	aiMethods[0] = KillSquadAI;
-	aiMethods[1] = KillSquadAI;
-	aiMethods[2] = KillSquadAI;
+		aiMethods [0] = CapAndCamp; //KillSquadAI;
+		aiMethods [1] = CapAndCamp; //KillSquadAI;
+		aiMethods [2] = CapAndCamp; //KillSquadAI;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -61,6 +64,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
+
+		targetObjectives = new ObjectiveScript[3];
+		for (int i = 0; i < targetObjectives.Length; i++) {
+			targetObjectives [i] = middleObjective;
+		}
+
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
 
@@ -105,12 +114,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             if (characterIndex == 0)
             {
                 character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-                spin(character, characterIndex);
+                Spin(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-                spin(character, characterIndex);
+                Spin(character, characterIndex);
             }
             else
             {
@@ -129,20 +138,17 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     	}
     }
 
-    private bool[] lastWentToLeft;
-    private ObjectiveScript[] targetObjectives = null;
+    private bool[] lastWentToLeft = null;
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Initialize necessary data
-        if (targetObjectives == null)
+		if (lastWentToLeft == null)
         {
             lastWentToLeft = new bool[3];
-            targetObjectives = new ObjectiveScript[3];
 
             for (int i = 0; i < 3; i++)
             {
                 lastWentToLeft[i] = true;
-                targetObjectives[i] = middleObjective;
                 //characters[i].MoveChar(currentObjective.transform.position);
                 //characters[i].SetFacing(currentObjective.transform.position);
             }
@@ -205,32 +211,32 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
-        bool hasMiddleObjective = true;
+        bool hasMiddleObjective = false;
         bool allThreeAlive = true;
-        bool hasBottomObjective = true;
+        bool hasBottomObjective = false;
 
-        if (!hasMiddleObjective) {
+		ObjectiveScript currentObjective = targetObjectives [characterIndex];
 
-            // go get middle objective
-        
-        } else if (allThreeAlive) {
-            if (hasBottomObjective) {
+		if (currentObjective.getControllingTeam () == ourTeamColor) {
+			if (middleObjective.getControllingTeam () != ourTeamColor) {
+				// must capture middle objective
+				targetObjectives [characterIndex] = middleObjective;
 
-                // go get top objective with low health players
-
-                while (!allThreeAlive) {
-                    // bring all charaters to center
-                }
-            } else {
-				
-                // go get bottom objective with low health players
-				
-                while (!allThreeAlive)
-				{
-					// bring all charaters to center
-				}
+			} else if (GetGreatestNeighbor (character, characterIndex) == characterIndex) {
+				// leave greatest neighbor to guard
+				// -- move to watch location --
+				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
+				// -- and watch --
+				character.SetFacing (currentObjective.transform.position);
+			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
+				targetObjectives [characterIndex] = rightObjective;
+			} else {
+				targetObjectives [characterIndex] = leftObjective;
 			}
-        }
+		} else {
+			character.MoveChar (currentObjective.transform.position);
+			Spin (character, characterIndex);
+		}
     }
 
     void Update()
@@ -317,23 +323,35 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         timer += 1;
     }
 
-	void spin(CharacterScript character, int characterIndex)
+	void Spin(CharacterScript character, int characterIndex)
 	{
 		character.rotateAngle (600f);
 	}
-
-	// returns: bool[] where *true* denotes index of an ally within 35m of character
-	bool[] getNearAllies(CharacterScript character, int characterIndex)
+	
+	
+	// returns: bool[] where *true* denotes index of an ally within 35m of character (excluding self)
+	bool[] GetNearAllies(CharacterScript character, int characterIndex)
 	{
 		bool[] isNearArr = new bool[3];
 		for (int i = 0; i < characters.Length; i++) {
 			if (i != characterIndex) {
-				isNearArr [i] = Vector3.Distance (character.getPrefabObject().transform.position, characters [i].transform.position) < 35;
+				isNearArr [i] = Vector3.Distance (character.getPrefabObject().transform.position, characters [i].getPrefabObject().transform.position) < MAX_NEAR_DIST;
 			} else {
 				isNearArr [i] = false;
 			}
 		}
 		return isNearArr;
+	}
+	
+	// return highest index of near allies (including self)
+	int GetGreatestNeighbor(CharacterScript character, int characterIndex)
+	{
+		for(int i = characters.Length - 1; i >= 0; i--) {
+			if(Vector3.Distance(character.getPrefabObject().transform.position, characters[i].getPrefabObject().transform.position) < MAX_NEAR_DIST) {
+				return i;
+			}
+		}
+		return characterIndex;
 	}
 }
 
