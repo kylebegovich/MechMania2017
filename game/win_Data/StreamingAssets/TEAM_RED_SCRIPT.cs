@@ -337,7 +337,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		bool[] isNearArr = new bool[3];
 		for (int i = 0; i < characters.Length; i++) {
 			if (i != characterIndex) {
-				isNearArr [i] = Vector3.Distance (character.transform.position, characters [i].transform.position) < 35;
+				isNearArr [i] = Vector3.Distance (character.getPrefabObject().transform.position, characters [i].transform.position) < 35;
 			} else {
 				isNearArr [i] = false;
 			}
