@@ -58,33 +58,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-<<<<<<< HEAD
-=======
-
-	//	aiMethods [0] = spawnTrap; //KillSquadAI;
-//		aiMethods [1] = KillSquadAI; //KillSquadAI;
-//		aiMethods [2] = spawnTrap; //KillSquadAI;
-
-<<<<<<< HEAD
-		aiMethods [0] = kiteEnemies;
-		aiMethods [1] = kiteEnemies;
-		aiMethods [2] = kiteEnemies;
-=======
-<<<<<<< HEAD
-
-
-		aiMethods [0] = kiteEnemies;
-		aiMethods [1] = kiteEnemies;
-		aiMethods [2] = kiteEnemies;
-      
-=======
->>>>>>> 7015c6da5db68299405116fe2ff81b50703f4f3a
-		aiMethods [0] = spawnTrap;
-		aiMethods [1] = spawnTrap;
-		aiMethods [2] = spawnTrap;
->>>>>>> 041969d507b17a1eb7126a8954f94248ac7029a5
->>>>>>> 75a63a2a740156b73f5147289c351c8ba3b815a4
-
         InitializeStrategies();
         SetOverallStrategy(STRAT_SPAWN_KILL_WITH_HUNT);
 
