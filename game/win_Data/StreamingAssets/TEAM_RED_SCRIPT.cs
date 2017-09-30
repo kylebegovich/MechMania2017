@@ -198,9 +198,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         }
     }
 
-    void CapAndCamp(CharacterScript character, int characterIndex) {
-        bool allThreeAlive = true;
-        bool hasBottomObjective = false;
+	// TODO: Sometimes characters will move towards already guarded Objective right after it is capped when respawning
+	void CapAndCamp(CharacterScript character, int characterIndex) {
+
+		// Ensure all characters have MEDIUM layout
+		if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+			character.setLoadout(loadout.MEDIUM);
 
 		ObjectiveScript currentObjective = targetObjectives [characterIndex];
 
@@ -210,7 +213,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 				targetObjectives [characterIndex] = middleObjective;
 
 			} else if (GetLeastNeighborIndex (character, characterIndex) == characterIndex) {
-				// leave greatest neighbor to guard
+				// leave least index neighboring ally to guard
 				// -- move to watch location --
 				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
 				// -- and watch --
@@ -248,7 +251,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         }
 
 
-        //Set caracter loadouts, can only happen when the characters are at base.
+        //Set character loadouts, can only happen when the characters are at base.
         /*if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase) 
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
@@ -347,7 +350,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			}
 		}
 
-		spinQuat = spinQuat * Quaternion.Euler (0, 40, 0); // change 30 to 1 if you want to see that they are facing the right way relative to one another.
+		spinQuat = spinQuat * Quaternion.Euler (0, 40, 0); // change 40 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 	
 	
