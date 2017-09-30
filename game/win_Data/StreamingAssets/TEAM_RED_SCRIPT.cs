@@ -34,6 +34,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     }
 
 	private ObjectiveScript[] targetObjectives;
+	private Quaternion spinQuat; // used to syncronize spinning
 	private const float MAX_NEAR_DIST = 10; // maximum distance to be considered 'near' to another player;
 
     delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
@@ -69,6 +70,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		for (int i = 0; i < targetObjectives.Length; i++) {
 			targetObjectives [i] = middleObjective;
 		}
+//		spinQuat = new Quaternion(0, 0, 0, 0);
+		spinQuat = Quaternion.identity;
 
         //Makes gametimer call every second
         InvokeRepeating("gameTimer", 0.0f, 1.0f);
@@ -211,7 +214,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     }
 
     void CapAndCamp(CharacterScript character, int characterIndex) {
-        bool hasMiddleObjective = false;
         bool allThreeAlive = true;
         bool hasBottomObjective = false;
 
@@ -222,7 +224,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 				// must capture middle objective
 				targetObjectives [characterIndex] = middleObjective;
 
-			} else if (GetGreatestNeighbor (character, characterIndex) == characterIndex) {
+			} else if (GetLeastNeighborIndex (character, characterIndex) == characterIndex) {
 				// leave greatest neighbor to guard
 				// -- move to watch location --
 				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
@@ -325,7 +327,21 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 	void Spin(CharacterScript character, int characterIndex)
 	{
-		character.rotateAngle (600f);
+		int leastNeighborIndex = GetLeastNeighborIndex(character, characterIndex);
+		if (leastNeighborIndex == characterIndex) {
+			character.getPrefabObject().transform.rotation = spinQuat;
+		} else if (GetNeighborCount (character, characterIndex) == 2) {
+			character.getPrefabObject().transform.rotation = spinQuat * Quaternion.Euler(0, 180, 0);
+		} else {
+			// characters should face at thirds...
+			if (characterIndex == 2) {
+				character.getPrefabObject().transform.rotation = spinQuat * Quaternion.Euler(0, 120, 0);
+			} else {
+				character.getPrefabObject().transform.rotation = spinQuat * Quaternion.Euler (0, 240, 0);
+			}
+		}
+
+		/*spinQuat = */Quaternion temp = spinQuat * Quaternion.Euler (0, 40, 0); // change 30 to 1 if you want to see that they are facing the right way relative to one another.
 	}
 	
 	
@@ -342,11 +358,23 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		}
 		return isNearArr;
 	}
+
+	// returns: number of allies in range (including self)
+	int GetNeighborCount(CharacterScript character, int characterIndex)
+	{
+		int count = 0;
+		for (int i = 0; i < characters.Length; i++) {
+			if (Vector3.Distance (character.getPrefabObject ().transform.position, characters [i].getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				count++;
+			}
+		}
+		return count;
+	}
 	
 	// return highest index of near allies (including self)
-	int GetGreatestNeighbor(CharacterScript character, int characterIndex)
+	int GetLeastNeighborIndex(CharacterScript character, int characterIndex)
 	{
-		for(int i = characters.Length - 1; i >= 0; i--) {
+		for(int i = 0; i < characters.Length; i++) {
 			if(Vector3.Distance(character.getPrefabObject().transform.position, characters[i].getPrefabObject().transform.position) < MAX_NEAR_DIST) {
 				return i;
 			}
