@@ -57,9 +57,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
-		aiMethods [0] = CapAndCamp; //KillSquadAI;
-		aiMethods [1] = CapAndCamp; //KillSquadAI;
-		aiMethods [2] = CapAndCamp; //KillSquadAI;
+		aiMethods [0] = spawnTrap; //KillSquadAI;
+		aiMethods [1] = spawnTrap; //KillSquadAI;
+		aiMethods [2] = spawnTrap; //KillSquadAI;
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -103,45 +103,33 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
     	// Setup loadout for characters
     	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-    		if (characterIndex == 0 || characterIndex == 2)
-    			character.setLoadout(loadout.MEDIUM);
-    		else
-    			character.setLoadout(loadout.SHORT);
+  			character.setLoadout(loadout.SHORT);
 
         // Rush to middle point
-        if (middleObjective.getControllingTeam() != character1.getTeam() || middleObjective.getControllingTeam() == null)
+        if (timer <=15)
         {
             character.MoveChar(middleObjective.transform.position);
             character.SetFacing(middleObjective.transform.position);
         }
 
-        if (middleObjective.getControllingTeam() == character1.getTeam())
-    	{
-            if (characterIndex == 0)
-            {
-                character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-				Lookout (character, characterIndex);
-            }
-            else if (characterIndex == 2)
-            {
-                character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-				Lookout (character, characterIndex);
-            }
-            else
-            {
-                if (rightObjective.getControllingTeam() != character1.getTeam())
-                {
-                    character.MoveChar(rightObjective.transform.position);
-                    character.SetFacing(rightObjective.transform.position);
-                }
-                else
-                {
-                    character.MoveChar(leftObjective.transform.position);
-                    character.SetFacing(leftObjective.transform.position);
-                }
-                
-            }
-    	}
+        // Switch the middle character to just run and capture objectives
+        if (characterIndex == 1)
+        {
+            aiMethods[1] == KillSquadAI;
+        }
+
+        // Have other two characters near enemy spawn and camp
+        else if (characterIndex == 0)
+        {
+            character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
+            Lookout(character, characterIndex);
+        }
+        else
+        {
+            character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
+            Lookout(character, characterIndex);
+        }
+
     }
 
     private bool[] lastWentToLeft = null;
