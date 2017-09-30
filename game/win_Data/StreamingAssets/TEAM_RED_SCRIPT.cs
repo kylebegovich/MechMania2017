@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class TEAM_RED_SCRIPT : MonoBehaviour
+public class FIDGET_WINNERZ : MonoBehaviour
 {
     //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
 
@@ -28,9 +28,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-    public static TEAM_RED_SCRIPT AddYourselfTo(GameObject host)
+    public static FIDGET_WINNERZ AddYourselfTo(GameObject host)
     {
-        return host.AddComponent<TEAM_RED_SCRIPT>();
+        return host.AddComponent<FIDGET_WINNERZ>();
     }
 
 	private ObjectiveScript[] targetObjectives;
@@ -57,9 +57,15 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         characters[2] = character3;
 
         aiMethods = new CharacterAIMethod[3];
+
+		aiMethods [0] = spawnTrap; //KillSquadAI;
+		aiMethods [1] = KillSquadAI; //KillSquadAI;
+		aiMethods [2] = spawnTrap; //KillSquadAI;
+
 		aiMethods [0] = CapAndCamp;
 		aiMethods [1] = CapAndCamp;
 		aiMethods [2] = CapAndCamp;
+
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -84,47 +90,34 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     void spawnTrap(CharacterScript character, int characterIndex)
     {
-    	// Setup loadout for characters
-    	if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
-    		if (characterIndex == 0 || characterIndex == 2)
-    			character.setLoadout(loadout.MEDIUM);
-    		else
-    			character.setLoadout(loadout.SHORT);
+        // Setup loadout for characters
+        if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
+            character.setLoadout(loadout.SHORT);
 
         // Rush to middle point
-        if (middleObjective.getControllingTeam() != character1.getTeam() || middleObjective.getControllingTeam() == null)
+        if (timer <= 15)
         {
             character.MoveChar(middleObjective.transform.position);
             character.SetFacing(middleObjective.transform.position);
         }
 
-        if (middleObjective.getControllingTeam() == character1.getTeam())
-    	{
+
+
+        // Have other two characters near enemy spawn and camp
+        if (timer > 15)
+        {
             if (characterIndex == 0)
-            {
-                character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
-				Lookout (character, characterIndex);
+            { 
+              character.MoveChar(new Vector3(40.0f, 1.5f, -29.0f));
+              Lookout(character, characterIndex);
             }
             else if (characterIndex == 2)
             {
-                character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
-				Lookout (character, characterIndex);
+                 character.MoveChar(new Vector3(50.0f, 1.5f, -20.0f));
+                 Lookout(character, characterIndex);
             }
-            else
-            {
-                if (rightObjective.getControllingTeam() != character1.getTeam())
-                {
-                    character.MoveChar(rightObjective.transform.position);
-                    character.SetFacing(rightObjective.transform.position);
-                }
-                else
-                {
-                    character.MoveChar(leftObjective.transform.position);
-                    character.SetFacing(leftObjective.transform.position);
-                }
-                
-            }
-    	}
+        }
+
     }
 
     private bool[] lastWentToLeft = null;
