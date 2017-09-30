@@ -20,6 +20,10 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     /// </summary>
     /// 
 
+    List<CharacterAIMethod[]> allStrategies;
+    CharacterAIMethod[] STRAT_PURE_KILL_SQUAD; // All characters work in kill squad
+    CharacterAIMethod[] STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
+    CharacterAIMethod[] STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
 
     // USEFUL VARIABLES
     private ObjectiveScript middleObjective;
@@ -37,6 +41,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private ObjectiveScript[] targetObjectives;
 	private Quaternion spinQuat; // used to syncronize spinning
 	private List<Vector3> knownEnemyLocs;
+	private Vector3 teamVectorFactor;
 
 	// TODO: figure out what this should be
 	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
@@ -63,10 +68,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 //		aiMethods [1] = KillSquadAI; //KillSquadAI;
 //		aiMethods [2] = spawnTrap; //KillSquadAI;
 
+
+
 		aiMethods [0] = kiteEnemies;
 		aiMethods [1] = kiteEnemies;
 		aiMethods [2] = kiteEnemies;
-
+      
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -75,6 +82,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         // save our team, changes every time
         ourTeamColor = character1.getTeam();
+		if (ourTeamColor == team.red) {
+			teamVectorFactor = new Vector3 (1, 1, 1);
+		} else {
+			teamVectorFactor = new Vector3 (-1, 1, -1);
+		}
 
         targetPowerups = new GameObject[3];
         for(int i = 0; i < 3; i++)
@@ -96,7 +108,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     // Need to pass in the name of the powerup because reasons
     // Valid typeName parameters: "HealthPackItem(Clone)", PROBABLY NEED Item(Clone) too: "Points", "SpeedUp", "Power"
     // Returns null if cannot find an item of that type
-    bool oneWaySegFault = false;
     GameObject findClosestItemOfType(CharacterScript character, string typeName)
     {
         float closestDistance = 9001;
@@ -113,16 +124,8 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                     closestObject = item;
                 }
             }
-
-            //Debug.Log(item.name);
         }
 
-        if (oneWaySegFault)
-        { 
-            GameObject segFault = null;
-            segFault.name = "";
-            oneWaySegFault = false;
-        }
         return closestObject;
     }
 
@@ -306,9 +309,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			} else if (GetLeastNeighborIndex (character, characterIndex) == characterIndex) {
 				// leave least index neighboring ally to guard
 				// -- move to watch location --
-				character.MoveChar (currentObjective.transform.position + new Vector3 (-5, 0, 5));
+				character.MoveChar (currentObjective.transform.position + Vector3.Scale(new Vector3 (-5, 0, 5), teamVectorFactor));
 				// -- and watch --
-				SlowLookout(character, characterIndex);
+				Guard(character, characterIndex, currentObjective.transform.position);
 			} else if (rightObjective.getControllingTeam () != ourTeamColor) {
 				targetObjectives [characterIndex] = rightObjective;
 			} else {
@@ -347,6 +350,17 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     public void gameTimer()
     {
         timer += 1;
+	}
+
+	void Guard(CharacterScript character, int characterIndex, Vector3 target)
+	{
+		bool enemyNear = false;
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
+				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
+				enemyNear = true;
+			}
+		}
 	}
 
 	void SlowLookout(CharacterScript character, int characterIndex)
@@ -459,7 +473,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) >= 35)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
                 character.MoveChar(-knownEnemyLocs[i]);
