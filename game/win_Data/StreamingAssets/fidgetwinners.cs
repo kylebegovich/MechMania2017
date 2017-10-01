@@ -260,7 +260,7 @@ public class fidgetwinners : MonoBehaviour
             {
                 Guard(character, characterIndex, middleObjective.transform.position);
                 character.SetFacing(middleObjective.transform.position);
-                character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
+                character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-7, 0, 7), teamVectorFactor));
             }
             else
             {
@@ -275,7 +275,7 @@ public class fidgetwinners : MonoBehaviour
             {
                 Guard(character, characterIndex, rightObjective.transform.position);
                 character.SetFacing(rightObjective.transform.position);
-                character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
+                character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(6, 0, 6), teamVectorFactor));
             }
             else
             {
@@ -290,7 +290,7 @@ public class fidgetwinners : MonoBehaviour
             {
                 Guard(character, characterIndex, leftObjective.transform.position);
                 character.SetFacing(leftObjective.transform.position);
-                character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
+                character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-5, 0, -5), teamVectorFactor));
             }
             else
             {
