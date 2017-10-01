@@ -564,7 +564,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 36)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35.5f)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
 
