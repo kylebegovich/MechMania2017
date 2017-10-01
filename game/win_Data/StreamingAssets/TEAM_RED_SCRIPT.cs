@@ -59,7 +59,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
+<<<<<<< HEAD
 		SetOverallStrategy(STRAT_BUM_RUSH);
+=======
+        SetOverallStrategy(STRAT_FIFTY_KITE);
+>>>>>>> 35e3128945e4b41c30ce291410133a0f5a1b5676
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -530,6 +534,28 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     void Update()
     {
+        int ourScore = character1.getRedScore();
+        int otherScore = character1.getBlueScore();
+        if (ourTeamColor == team.blue)
+        {
+            ourScore = character1.getBlueScore();
+            otherScore = character1.getRedScore();
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject closestItem = characters[i].FindClosestItem();
+            if (closestItem == null)
+                continue;
+
+            float distanceToItem = Vector3.Distance(closestItem.transform.position, characters[i].getPrefabObject().transform.position);
+            if(distanceToItem <= 5)
+            {
+                characters[i].MoveChar(closestItem.transform.position);
+                return;
+            }
+        }
+
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
@@ -688,7 +714,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 36)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35.5f)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
 
