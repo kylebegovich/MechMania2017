@@ -59,11 +59,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
-<<<<<<< HEAD
 		SetOverallStrategy(STRAT_BUM_RUSH);
-=======
-        SetOverallStrategy(STRAT_FIFTY_KITE);
->>>>>>> 35e3128945e4b41c30ce291410133a0f5a1b5676
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -267,7 +263,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
             }
             else
+            {
                 character.MoveChar(middleObjective.transform.position);
+                if (Vector3.Distance(character.getPrefabObject().transform.position, middleObjective.transform.position) < 5)
+                    SlowLookout(character, characterIndex);
+            }
         }
         else if (characterIndex == 1)
         {
@@ -278,7 +278,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
             }
             else
+            {
                 character.MoveChar(rightObjective.transform.position);
+                if (Vector3.Distance(character.getPrefabObject().transform.position, rightObjective.transform.position) < 5)
+                    SlowLookout(character, characterIndex);
+            }
         }
         else
         {
@@ -289,7 +293,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
             }
             else
+            {
                 character.MoveChar(leftObjective.transform.position);
+                if (Vector3.Distance(character.getPrefabObject().transform.position, leftObjective.transform.position) < 5)
+                    SlowLookout(character, characterIndex);
+            }
         }
 
         for (int i = 0; i < 3; i++)
