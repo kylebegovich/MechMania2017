@@ -1,7 +1,7 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-public class TEAM_RED_SCRIPT : MonoBehaviour
+public class fidgetswinners : MonoBehaviour
 {
     //private Vector3 position = new Vector3(20.0f, 0.0f, 20.0f);
 
@@ -27,9 +27,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     private float timer = 0;
 
     private team ourTeamColor;
-    public static TEAM_RED_SCRIPT AddYourselfTo(GameObject host)
+    public static fidgetswinners AddYourselfTo(GameObject host)
     {
-        return host.AddComponent<TEAM_RED_SCRIPT>();
+        return host.AddComponent<fidgetswinners>();
     }
 
     private GameObject[] targetPowerups;
@@ -39,7 +39,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private Vector3 teamVectorFactor;
 
 	// TODO: figure out what this should be
-	private const float MAX_NEAR_DIST = 30; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
+	private const float MAX_NEAR_DIST = 15; // maximum distance to be considered 'near' to another player; probably needs to be adjusted
 
     public delegate void CharacterAIMethod(CharacterScript character, int characterIndex);
     CharacterScript[] characters;
@@ -59,7 +59,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
-        SetOverallStrategy(STRAT_POWERUP_WHORE);
+        SetOverallStrategy(STRAT_FIFTY_KITE);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -108,8 +108,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     Strategy STRAT_SPAWN_KILL_WITH_HUNT; // 2 characters spawn kill, 1 hunts middle
     Strategy STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
     Strategy STRAT_FIFTY_KITE;  // Kite for days
-    Strategy STRAT_POWERUP_WHORE; // Just go for powerups
-    
 
     void InitializeStrategies()
     {
@@ -117,14 +115,12 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         STRAT_SPAWN_KILL_WITH_HUNT = new Strategy("STRAT_SPAWN_KILL", new CharacterAIMethod[] {spawnTrap, KillSquadAI, spawnTrap});
         STRAT_CAP_AND_CAMP = new Strategy("STRAT_CAP_AND_CAMP", new CharacterAIMethod[] {CapAndCamp, CapAndCamp, CapAndCamp});
         STRAT_FIFTY_KITE = new Strategy("STRAT_FIFTY_KITE", new CharacterAIMethod[] { kiteEnemies, kiteEnemies, kiteEnemies });
-        STRAT_POWERUP_WHORE = new Strategy("STRAT_POWERUP_WHORE", new CharacterAIMethod[] {PowerupWhore, PowerupWhore, PowerupWhore});
 
         allStrategies = new List<Strategy>();
         allStrategies.Add(STRAT_PURE_KILL_SQUAD);
         allStrategies.Add(STRAT_SPAWN_KILL_WITH_HUNT);
         allStrategies.Add(STRAT_CAP_AND_CAMP);
         allStrategies.Add(STRAT_FIFTY_KITE);
-        allStrategies.Add(STRAT_POWERUP_WHORE);
     }
 
     void SetOverallStrategy(Strategy strategyToSet)
@@ -144,44 +140,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         }
 
         // Strategy not found
-    }
-
-    void PowerupWhore(CharacterScript character, int characterIndex)
-    {
-        if (characterIndex == 0 && timer == 1)
-        {
-            character.MoveChar(middleObjective.transform.position);
-        }
-
-        GameObject currentPowerup = targetPowerups[characterIndex];
-        if (currentPowerup != null)
-        {
-            float distanceToPowerup = Vector3.Distance(currentPowerup.transform.position, character.getPrefabObject().transform.position);
-            if (distanceToPowerup > 3)
-            {
-                return;
-            }
-            else
-            {
-                for (int i = 0; i < 3; i++)
-                {
-                    if (targetPowerups[i] == currentPowerup)
-                    {
-                        targetPowerups[i] = null;
-                        characters[i].MoveChar(leftObjective.transform.position);
-                    }
-                }
-            }
-        }
-
-        GameObject closestHealthPack = findClosestItemOfType(character, "PowerItem(Clone)");
-        if (closestHealthPack != null)
-        {
-            targetPowerups[characterIndex] = closestHealthPack;
-            character.MoveChar(closestHealthPack.transform.position);
-            Guard(character, characterIndex, closestHealthPack.transform.position);
-            return;
-        }
     }
 
     // Need to pass in the name of the powerup because reasons
@@ -253,36 +211,15 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         if (characterIndex == 0)
         {
-            if (middleObjective.getControllingTeam() == ourTeamColor)
-            {
-                Guard(character, characterIndex, middleObjective.transform.position);
-                character.SetFacing(middleObjective.transform.position);
-                character.MoveChar(middleObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
-            }
-            else
-                character.MoveChar(middleObjective.transform.position);
+            character.MoveChar(middleObjective.transform.position);
         }
         else if (characterIndex == 1)
         {
-            if(rightObjective.getControllingTeam() == ourTeamColor)
-            {
-                Guard(character, characterIndex, rightObjective.transform.position);
-                character.SetFacing(rightObjective.transform.position);
-                character.MoveChar(rightObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
-            }
-            else
-                character.MoveChar(rightObjective.transform.position);
+            character.MoveChar(rightObjective.transform.position);
         }
         else
         {
-            if (leftObjective.getControllingTeam() == ourTeamColor)
-            {
-                Guard(character, characterIndex, leftObjective.transform.position);
-                character.SetFacing(leftObjective.transform.position);
-                character.MoveChar(leftObjective.transform.position + Vector3.Scale(new Vector3(-6, 0, 6), teamVectorFactor));
-            }
-            else
-                character.MoveChar(leftObjective.transform.position);
+            character.MoveChar(leftObjective.transform.position);
         }
 
         for (int i = 0; i < 3; i++)
@@ -443,6 +380,11 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     void Update()
     {
+        if (timer == 1)
+        {
+            SetOverallStrategy(STRAT_FIFTY_KITE);
+        }
+
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
@@ -601,7 +543,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 35.5f)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 37)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
 

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 public class TEAM_RED_SCRIPT : MonoBehaviour
@@ -206,11 +206,23 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
         {
             character.setLoadout(loadout.LONG);
-            character.MoveChar(middleObjective.transform.position);
             character.SetFacing(middleObjective.transform.position);
         }
-        
-        for (int i = 0; i < 3; i ++)
+
+        if (characterIndex == 0)
+        {
+            character.MoveChar(middleObjective.transform.position);
+        }
+        else if (characterIndex == 1)
+        {
+            character.MoveChar(rightObjective.transform.position);
+        }
+        else
+        {
+            character.MoveChar(leftObjective.transform.position);
+        }
+
+        for (int i = 0; i < 3; i++)
         {
             MoveCharAwayEnemy(character, i);
         }
@@ -237,11 +249,6 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         if (character.getZone() == zone.BlueBase || character.getZone() == zone.RedBase)
             character.setLoadout(loadout.SHORT);
 
-		// Enable FIDGET (SLOW) SPINNING
-		//         ^--- :(
-        Guard(character, characterIndex, currentObjective.transform.position);
-
-
 		//TODO: should only be able to seek health after target point is capped.
         if (character.getHP() < 99)
         {
@@ -257,14 +264,14 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
                 //character.MoveChar(leftObjective.transform.position);
                 targetPowerups[characterIndex] = closestHealthPack;
                 character.MoveChar(closestHealthPack.transform.position);
-                character.SetFacing(closestHealthPack.transform.position);
+                Guard(character, characterIndex, closestHealthPack.transform.position);
                 return;
             }
         }
 
         ObjectiveScript currentObjective = targetObjectives[characterIndex];
-        character.MoveChar(currentObjective.transform.position);
-        character.SetFacing(currentObjective.transform.position);
+		character.MoveChar(currentObjective.transform.position);
+		Guard(character, characterIndex, currentObjective.transform.position);
 
         if (currentObjective == middleObjective)
         {
@@ -536,7 +543,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     {
         for (int i = 0; i < knownEnemyLocs.Count; i++)
         {                                                                                                      
-            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) >= 35)  
+            if (Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) <= 37)  
             {
                 character.SetFacing(knownEnemyLocs[i]);
 
