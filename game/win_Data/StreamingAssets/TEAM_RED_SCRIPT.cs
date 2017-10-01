@@ -59,7 +59,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
-        SetOverallStrategy(STRAT_POWERUP_WHORE);
+        SetOverallStrategy(STRAT_FIFTY_KITE);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -443,6 +443,28 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
     void Update()
     {
+        int ourScore = character1.getRedScore();
+        int otherScore = character1.getBlueScore();
+        if (ourTeamColor == team.blue)
+        {
+            ourScore = character1.getBlueScore();
+            otherScore = character1.getRedScore();
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            GameObject closestItem = characters[i].FindClosestItem();
+            if (closestItem == null)
+                continue;
+
+            float distanceToItem = Vector3.Distance(closestItem.transform.position, characters[i].getPrefabObject().transform.position);
+            if(distanceToItem <= 5)
+            {
+                characters[i].MoveChar(closestItem.transform.position);
+                return;
+            }
+        }
+
         if (character1.getZone() == zone.BlueBase || character1.getZone() == zone.RedBase)
             character1.setLoadout(loadout.SHORT);
         if (character2.getZone() == zone.BlueBase || character2.getZone() == zone.RedBase)
