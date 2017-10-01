@@ -60,7 +60,10 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
 		SetOverallStrategy(STRAT_FIFTY_KITE);
+<<<<<<< HEAD
 
+=======
+>>>>>>> 1dec6c4ff7c3d71b4cb66fd7f5abc865bcf8a845
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
