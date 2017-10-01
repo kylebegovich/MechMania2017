@@ -59,11 +59,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
-<<<<<<< HEAD
-		SetOverallStrategy(STRAT_BUM_RUSH);
-=======
-        SetOverallStrategy(STRAT_FIFTY_KITE);
->>>>>>> 35e3128945e4b41c30ce291410133a0f5a1b5676
+		SetOverallStrategy(STRAT_FIFTY_KITE);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -302,27 +298,19 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 	private bool[] lastWentToLeft = null;
 	void BumRush(CharacterScript character, int characterIndex)
 	{
-		if (character.getZone () == zone.BlueBase || character.getZone () == zone.RedBase)
-			character.setLoadout (loadout.SHORT);
-
-		if (character.getHP() < 70)
+		// Initialize necessary data
+		if (lastWentToLeft == null)
 		{
-			if (targetPowerups[characterIndex] != null && 
-				Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
-			{
-				return;
-			}
+			lastWentToLeft = new bool[3];
 
-			GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
-			if (closestHealthPack != null)
+			for (int i = 0; i < 3; i++)
 			{
-				//character.MoveChar(leftObjective.transform.position);
-				targetPowerups[characterIndex] = closestHealthPack;
-				character.MoveChar(closestHealthPack.transform.position);
-				Guard(character, characterIndex, closestHealthPack.transform.position);
-				return;
+				lastWentToLeft[i] = true;
 			}
 		}
+
+		if (character.getZone () == zone.BlueBase || character.getZone () == zone.RedBase)
+			character.setLoadout (loadout.SHORT);
 
 		for (int i = 0; i < knownEnemyLocs.Count; i++) {
 			if(Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) < 15) {
@@ -332,9 +320,17 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			}
 		}
 
+		if (character.getHP() < 70 && findClosestItemOfType(character, "HealthPackItem(Clone)") != null)
+		{
+			GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+			character.MoveChar(closestHealthPack.transform.position);
+			character.SetFacing (closestHealthPack.transform.position);
+			return;
+		}
+
 		ObjectiveScript currentObjective = targetObjectives[characterIndex];
 		character.MoveChar(currentObjective.transform.position);
-		Guard(character, characterIndex, currentObjective.transform.position);
+		character.SetFacing (currentObjective.transform.position);
 
 		if (currentObjective == middleObjective)
 		{
@@ -345,6 +341,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 			// We are less than 5 distance, cap the point if not capped
 			if (middleObjective.getControllingTeam() != ourTeamColor)
 			{
+				SlowLookout (character, characterIndex);
 				return;
 			}
 
@@ -566,6 +563,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 		knownEnemyLocs.Clear ();
 		for (int i = 0; i < characters.Length; i++) {
 			knownEnemyLocs.AddRange(characters[i].visibleEnemyLocations); // might be something wrong with visibleEnemyLocations breaking Lookout()
+			characters[i].visibleEnemyLocations.Clear();
 			knownEnemyLocs.AddRange(characters[i].attackedFromLocations); //                - -            attackedFromLocations        - -
 			characters[i].attackedFromLocations.Clear();
 		}
@@ -595,11 +593,9 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
 	void Guard(CharacterScript character, int characterIndex, Vector3 target)
 	{
-		bool enemyNear = false;
 		for (int i = 0; i < knownEnemyLocs.Count; i++) {
 			if (Vector3.Distance (knownEnemyLocs [i], character.getPrefabObject ().transform.position) < MAX_NEAR_DIST) {
-				character.SetFacing ((knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
-				enemyNear = true;
+				character.SetFacing (character.getPrefabObject().transform.position + (knownEnemyLocs [i] - character.getPrefabObject ().transform.position).normalized);
 			}
 		}
 	}
