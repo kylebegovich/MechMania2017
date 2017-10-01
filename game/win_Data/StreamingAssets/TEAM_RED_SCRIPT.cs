@@ -59,7 +59,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
 
         aiMethods = new CharacterAIMethod[3];
         InitializeStrategies();
-        SetOverallStrategy(STRAT_POWERUP_WHORE);
+		SetOverallStrategy(STRAT_BUM_RUSH);
 
         // populate the objectives
         middleObjective = GameObject.Find("MiddleObjective").GetComponent<ObjectiveScript>();
@@ -109,6 +109,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
     Strategy STRAT_CAP_AND_CAMP; // Cap and camp AI for all players
     Strategy STRAT_FIFTY_KITE;  // Kite for days
     Strategy STRAT_POWERUP_WHORE; // Just go for powerups
+	Strategy STRAT_BUM_RUSH;
     
 
     void InitializeStrategies()
@@ -118,6 +119,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         STRAT_CAP_AND_CAMP = new Strategy("STRAT_CAP_AND_CAMP", new CharacterAIMethod[] {CapAndCamp, CapAndCamp, CapAndCamp});
         STRAT_FIFTY_KITE = new Strategy("STRAT_FIFTY_KITE", new CharacterAIMethod[] { kiteEnemies, kiteEnemies, kiteEnemies });
         STRAT_POWERUP_WHORE = new Strategy("STRAT_POWERUP_WHORE", new CharacterAIMethod[] {PowerupWhore, PowerupWhore, PowerupWhore});
+		STRAT_BUM_RUSH = new Strategy ("STRAT_BUM_RUSH", new CharacterAIMethod[] { BumRush, BumRush, BumRush });
 
         allStrategies = new List<Strategy>();
         allStrategies.Add(STRAT_PURE_KILL_SQUAD);
@@ -125,6 +127,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
         allStrategies.Add(STRAT_CAP_AND_CAMP);
         allStrategies.Add(STRAT_FIFTY_KITE);
         allStrategies.Add(STRAT_POWERUP_WHORE);
+		allStrategies.Add (STRAT_BUM_RUSH);
     }
 
     void SetOverallStrategy(Strategy strategyToSet)
@@ -290,11 +293,95 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             MoveCharAwayEnemy(character, i);
         }
         
-        
-
     }
 
-    private bool[] lastWentToLeft = null;
+	private bool[] lastWentToLeft = null;
+	void BumRush(CharacterScript character, int characterIndex)
+	{
+		if (character.getZone () == zone.BlueBase || character.getZone () == zone.RedBase)
+			character.setLoadout (loadout.SHORT);
+
+		if (character.getHP() < 70)
+		{
+			if (targetPowerups[characterIndex] != null && 
+				Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)
+			{
+				return;
+			}
+
+			GameObject closestHealthPack = findClosestItemOfType(character, "HealthPackItem(Clone)");
+			if (closestHealthPack != null)
+			{
+				//character.MoveChar(leftObjective.transform.position);
+				targetPowerups[characterIndex] = closestHealthPack;
+				character.MoveChar(closestHealthPack.transform.position);
+				Guard(character, characterIndex, closestHealthPack.transform.position);
+				return;
+			}
+		}
+
+		for (int i = 0; i < knownEnemyLocs.Count; i++) {
+			if(Vector3.Distance(knownEnemyLocs[i], character.getPrefabObject().transform.position) < 15) {
+				character.MoveChar (knownEnemyLocs [i]);
+				character.SetFacing (knownEnemyLocs [i]);
+				return;
+			}
+		}
+
+		ObjectiveScript currentObjective = targetObjectives[characterIndex];
+		character.MoveChar(currentObjective.transform.position);
+		Guard(character, characterIndex, currentObjective.transform.position);
+
+		if (currentObjective == middleObjective)
+		{
+			// Continue moving until we are less than 5 distance away
+			if (Vector3.Distance(currentObjective.transform.position, character.getPrefabObject().transform.position) > 5)
+				return;
+
+			// We are less than 5 distance, cap the point if not capped
+			if (middleObjective.getControllingTeam() != ourTeamColor)
+			{
+				return;
+			}
+
+			// We are currently at captured middle position (Home Base) 
+			// Evaluate whether should go to left or right
+			if (leftObjective.getControllingTeam() != ourTeamColor && rightObjective.getControllingTeam() != ourTeamColor)
+			{
+				// Should probably choose at random
+				if (lastWentToLeft[characterIndex])
+				{
+					targetObjectives[characterIndex] = rightObjective;
+					lastWentToLeft[characterIndex] = false;
+				}
+				else
+				{
+					targetObjectives[characterIndex] = leftObjective;
+					lastWentToLeft[characterIndex] = true;
+				}
+			}
+			else
+				if (leftObjective.getControllingTeam() != ourTeamColor)
+				{
+					targetObjectives[characterIndex] = leftObjective;
+				}
+				else
+				{
+					targetObjectives[characterIndex] = rightObjective;
+				}
+
+			return;
+		}
+
+		// Heading towards either left or right objective
+		if (currentObjective.getControllingTeam() == ourTeamColor)
+		{
+			// Objective captured, head back to home base
+			targetObjectives[characterIndex] = middleObjective;
+			return;
+		}
+	}
+
     void KillSquadAI(CharacterScript character, int characterIndex)
     {
         // Initialize necessary data
@@ -313,7 +400,7 @@ public class TEAM_RED_SCRIPT : MonoBehaviour
             character.setLoadout(loadout.SHORT);
 
 		//TODO: should only be able to seek health after target point is capped.
-        if (character.getHP() < 99)
+        if (character.getHP() < 70)
         {
             if (targetPowerups[characterIndex] != null && 
                 Vector3.Distance(targetPowerups[characterIndex].transform.position, character.getPrefabObject().transform.position) > 1)

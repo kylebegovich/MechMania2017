@@ -1,5 +1,1 @@
-<<<<<<< HEAD
 RED
-=======
-BLUE
->>>>>>> 0bf55f9409d8fa9e118b11b86109e88cf9ddf5c3
