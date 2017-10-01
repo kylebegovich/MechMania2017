@@ -1,17 +1,1 @@
-<<<<<<< HEAD
 RED
-=======
-<<<<<<< HEAD
-RED
-=======
-<<<<<<< HEAD
-RED
-=======
-<<<<<<< HEAD
-RED
-=======
-BLUE
->>>>>>> 0bf55f9409d8fa9e118b11b86109e88cf9ddf5c3
->>>>>>> 01ec8c7f0e3b5da680c94585d7763ebf233dfb34
->>>>>>> a550381227ac5a074afbf5b425adf7e9ceaf34a5
->>>>>>> 35e3128945e4b41c30ce291410133a0f5a1b5676
